@@ -8,7 +8,7 @@ var CurrentlyEnteringAdminCode = false;
 
 var HasGottenANewUpdate = false;
 
-var chatSocket = new ReconnectingWebSocket('ws://' + window.location.host + '/ws/main/');
+var chatSocket = new ReconnectingWebSocket('wss://' + window.location.host + '/ws/main/');
 
 var countdown = setInterval(function() {
     if (Est_Time != 0) {
