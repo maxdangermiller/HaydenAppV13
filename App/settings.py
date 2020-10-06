@@ -79,9 +79,18 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('hayden-auditorium.herokuapp.com', 6379)],  # ('127.0.0.1', 6379),
+            "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],  # ('127.0.0.1', 6379),
         },
     },
+}
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis_cache.RedisCache",
+        "LOCATION": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        }
+    }
 }
 
 
