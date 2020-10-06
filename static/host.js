@@ -8,7 +8,7 @@ var DisplaysConnectionList = [false, false, false, false, false, false];
 var timer = 5;
 var EditingNumber = 0;
 
-var chatSocket = new WebSocket('wss://' + window.location.host + '/ws/main/');
+var chatSocket = new WebSocket('wss://' + window.location.host + '/wss/main/');
 
 var countdown = setInterval(function() {
     if (Est_Time != 0) {
