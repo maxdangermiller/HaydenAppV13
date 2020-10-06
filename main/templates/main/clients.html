@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"
+          crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+            integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <title>Hayden Auditorium</title>
+</head>
+<body style="background-color:grey;">
+    <div class="container-lg">
+        <div class="d-flex align-items-center justify-content-center flex-column" style="height: 100vh" id="container">
+            <div class="p-2">
+                <h1 style="color:white; font-family:impact; font-size:1000%;">Join As </h1>
+            </div>
+            <div class="p-2">
+                <input id="btn-1" type="button" value="Display 1" class="btn btn-dark btn-lg">
+                <input id="btn-2" type="button" value="Display 2" class="btn btn-dark btn-lg">
+                <input id="btn-3" type="button" value="Display 3" class="btn btn-dark btn-lg">
+            </div>
+            <div class="p-2">
+                <input id="btn-4" type="button" value="Display 4" class="btn btn-dark btn-lg">
+                <input id="btn-5" type="button" value="Display 5" class="btn btn-dark btn-lg">
+                <input id="btn-6" type="button" value="Display 6" class="btn btn-dark btn-lg">
+            </div>
+            <div class="p-2">
+                <input id="btn-back" type="button" value="Go Back" class="btn btn-danger btn-lg">
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    document.querySelector('#btn-1').value = "{{config.display_one_name}}";
+    document.querySelector('#btn-2').value = "{{config.display_two_name}}";
+    document.querySelector('#btn-3').value = "{{config.display_three_name}}";
+    document.querySelector('#btn-4').value = "{{config.display_four_name}}";
+    document.querySelector('#btn-5').value = "{{config.display_five_name}}";
+    document.querySelector('#btn-6').value = "{{config.display_six_name}}";
+
+    document.querySelector('#btn-1').onclick = function(e) { window.location.pathname = 'client/1/'; };
+    document.querySelector('#btn-2').onclick = function(e) { window.location.pathname = 'client/2/'; };
+    document.querySelector('#btn-3').onclick = function(e) { window.location.pathname = 'client/3/'; };
+    document.querySelector('#btn-4').onclick = function(e) { window.location.pathname = 'client/4/'; };
+    document.querySelector('#btn-5').onclick = function(e) { window.location.pathname = 'client/5/'; };
+    document.querySelector('#btn-6').onclick = function(e) { window.location.pathname = 'client/6/'; };
+
+    document.querySelector('#btn-back').onclick = function(e) { window.location.pathname = 'join/'; };
+</script>
+
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+{% load DisplayConfigFilters %}
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"
+          crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+            integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <title>Hayden Auditorium</title>
+
+    <style>
+        .block {
+            display: block;
+            width: 100%;
+            height: 100%
+        }
+    </style>
+</head>
+<body style="background-color:grey;">
+    <div class="float-right" id="main">
+        <div class="d-flex align-items-center justify-content-center" style="height: 100vh">
+            <div class="d-flex align-items-center justify-content-center flex-column" style="height: 60vh">
+                <div class="p-2">
+                    <div class="border-0 rounded" style="height: 20vh; width: 40vh">
+                        <h1 style="color:#800000; font-family:impact;">Current: </h1>
+                        <h2 id="current-text" style="text-indent: 50px;"></h2>
+                    </div>
+                </div>
+                <div class="p-2">
+                    <div class="border-0 rounded" style="height: 20vh; width: 40vh">
+                        <h1 style="color:#000099; font-family:impact;">Next: </h1>
+                        <h2 id="next-text" style="text-indent: 50px;"></h2>
+                    </div>
+                </div>
+                <div class="p-2">
+                    <div class="border-0 rounded" style="height: 20vh; width: 40vh">
+                        <h1 style="color:#003300; font-family:impact;">After: </h1>
+                        <h2 id="after-text" style="text-indent: 50px;"></h2>
+                    </div>
+                </div>
+                <div class="p-2">
+                    <div class="border-0 rounded" style="height: 20vh; width: 40vh">
+                        <h1 style="color:#6600cc; font-family:impact;">Estimated Time: </h1>
+                        <h2 id="est-text" style="text-indent: 50px;"></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="float-right" id="loader">
+        <div class="d-flex align-items-center justify-content-center" style="height: 100vh">
+            <div class="d-flex align-items-center justify-content-center flex-column" style="height: 60vh">
+                <div class="p-2">
+                    <div class="border-0 rounded" style="height: 20vh; width: 40vh">
+                        <h1 style="color:#800000; font-family:impact;">Current: </h1>
+                        <div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>
+                    </div>
+                </div>
+                <div class="p-2">
+                    <div class="border-0 rounded" style="height: 20vh; width: 40vh">
+                        <h1 style="color:#000099; font-family:impact;">Next: </h1>
+                        <div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>
+                    </div>
+                </div>
+                <div class="p-2">
+                    <div class="border-0 rounded" style="height: 20vh; width: 40vh">
+                        <h1 style="color:#003300; font-family:impact;">After: </h1>
+                        <div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>
+                    </div>
+                </div>
+                <div class="p-2">
+                    <div class="border-0 rounded" style="height: 20vh; width: 40vh">
+                        <h1 style="color:#6600cc; font-family:impact;">Estimated Time: </h1>
+                        <div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-center flex-column" style="height: 100vh">
+            <div class="p-2">
+                <div class="border border-dark rounded" style="border-width:3px !important;">
+                    <div class="d-flex justify-content-between mb-1">
+                        <div class="p-2">
+                            <button type="button" class="btn btn-dark block" style="height: 10vh; width: 20vh;" id="display-1">{{ config|configEdit:"1" }}</button>
+                            <button type="button" class="btn btn-dark block disabled" style="height: 10vh; width: 20vh;" id="display-1-loader">
+                                <span class="spinner-border" role="status"><span class="sr-only">Loading...</span></span>
+                            </button>
+                        </div>
+                        <div class="p-2">
+                            <button type="button" class="btn btn-dark block" style="height: 10vh; width: 20vh;" id="display-2">{{ config|configEdit:"2" }}</button>
+                            <button type="button" class="btn btn-dark block disabled" style="height: 10vh; width: 20vh;" id="display-2-loader">
+                                <span class="spinner-border" role="status"><span class="sr-only">Loading...</span></span>
+                            </button>
+                        </div>
+                        <div class="p-2">
+                            <button type="button" class="btn btn-dark block" style="height: 10vh; width: 20vh;" id="display-3">{{ config|configEdit:"3" }}</button>
+                            <button type="button" class="btn btn-dark block disabled" style="height: 10vh; width: 20vh;" id="display-3-loader">
+                                <span class="spinner-border" role="status"><span class="sr-only">Loading...</span></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <div class="p-2">
+                            <button type="button" class="btn btn-dark block" style="height: 10vh; width: 20vh;" id="display-4">{{ config|configEdit:"4" }}</button>
+                            <button type="button" class="btn btn-dark block disabled" style="height: 10vh; width: 20vh;" id="display-4-loader">
+                                <span class="spinner-border" role="status"><span class="sr-only">Loading...</span></span>
+                            </button>
+                        </div>
+                        <div class="p-2">
+                            <button type="button" class="btn btn-dark block" style="height: 10vh; width: 20vh;" id="display-5">{{ config|configEdit:"5" }}</button>
+                            <button type="button" class="btn btn-dark block disabled" style="height: 10vh; width: 20vh;" id="display-5-loader">
+                                <span class="spinner-border" role="status"><span class="sr-only">Loading...</span></span>
+                            </button>
+                        </div>
+                        <div class="p-2">
+                            <button type="button" class="btn btn-dark block" style="height: 10vh; width: 20vh;" id="display-6">{{ config|configEdit:"6" }}</button>
+                            <button type="button" class="btn btn-dark block disabled" style="height: 10vh; width: 20vh;" id="display-6-loader">
+                                <span class="spinner-border" role="status"><span class="sr-only">Loading...</span></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-2">
+                <input id="backward" type="button" value="Backward" class="btn btn-dark btn-lg">
+                <input id="forward" type="button" value="Forward" class="btn btn-dark btn-lg">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="EditDisplay" tabindex="-1" role="dialog" aria-labelledby="EditDisplayLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="EditDisplayLabel">Edit</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control" placeholder="" aria-label="Name: " aria-describedby="basic-addon1" id="EditDisplayName">
+                    <hr>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="EditDisplaySound" checked>
+                        <label class="form-check-label" for="EditDisplaySound">Play Sound</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="EditDisplaySave">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script src="{% static 'reconnecting-websocket.js' %}"></script>
+<script>
+    var configName1 = "{{config.display_one_name}}";
+    var configSound1 = "{{config.display_one_play_sound}}";
+    var configName2 = "{{config.display_two_name}}";
+    var configSound2 = "{{config.display_two_play_sound}}";
+    var configName3 = "{{config.display_three_name}}";
+    var configSound3 = "{{config.display_three_play_sound}}";
+    var configName4 = "{{config.display_four_name}}";
+    var configSound4 = "{{config.display_four_play_sound}}";
+    var configName5 = "{{config.display_five_name}}";
+    var configSound5 = "{{config.display_five_play_sound}}";
+    var configName6 = "{{config.display_six_name}}";
+    var configSound6 = "{{config.display_six_play_sound}}";
+</script>
+<script src="{% static 'host.js' %}"></script>
+
+</html>
