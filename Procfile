@@ -1,0 +1,1 @@
+web: daphne App.asgi:application
