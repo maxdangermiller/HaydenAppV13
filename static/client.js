@@ -7,6 +7,7 @@ var AdminCurrentString = "";
 var CurrentlyEnteringAdminCode = false;
 
 var HasGottenANewUpdate = false;
+var isInFullscreen = false;
 
 function openFullscreen() {
     console.log('opening full-screen mode.');
@@ -39,8 +40,10 @@ var chatSocket = new ReconnectingWebSocket('ws://' + window.location.host + '/ws
 document.addEventListener('fullscreenchange', (event) => {
   if (document.fullscreenElement) {
     console.log('Entered fullscreen mode.');
+    isInFullscreen = true;
   } else {
     console.log('Leaving full-screen mode.');
+    isInFullscreen = false;
     chatSocket.send(JSON.stringify({'command': 'send_tamper_alert', 'display': DisplayNumb}));
     alert("Tampering Reported.");
   }
@@ -81,7 +84,9 @@ chatSocket.onmessage = function(e) {
         Est_Set = true;
         Est_Time = data['est'];
     } else if (data['type'] === 'connectedDisplays') {
-        chatSocket.send(JSON.stringify({'command': 'set_connected_display', 'display': DisplayNumb}));
+        chatSocket.send(JSON.stringify({'command': 'set_connected_display', 'display': DisplayNumb, 'is_protected': isInFullscreen}));
+        document.getElementById('mainContainer').style.display = "block";
+        document.getElementById('offlineContainer').style.display = "none";
         HasGottenANewUpdate = true;
     } else if (data['type'] === 'rfid_auth') {
         $("#Authorise").modal("hide");

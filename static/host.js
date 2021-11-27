@@ -5,6 +5,7 @@ var Est_Set;
 var Est_Time_Seconds;
 var LastDisplaysConnectionList = [false, false, false, false, false, false];
 var DisplaysConnectionList = [false, false, false, false, false, false];
+var protectedConnectionList = [false, false, false, false, false, false];
 var timer = 5;
 var EditingNumber = 0;
 
@@ -62,18 +63,25 @@ chatSocket.onmessage = function(e) {
         chatSocket.send(JSON.stringify({'command': 'admin_send_update_message', 'index': CurrentIncrement}));
     }
     else if (data['type'] === 'connectedDisplay') {
-        hideLoader(data['display']);
         DisplaysConnectionList[data['display'] - 1] = true;
+        protectedConnectionList[data['display'] - 1] = data['is_protected']
+        hideLoader(data['display']);
     }
     else if (data['type'] === 'tamperAlert') {
         displayName = "ERROR";
-        if (data['display'] == '0') { displayName = configName1; }
-        if (data['display'] == '1') { displayName = configName2; }
-        if (data['display'] == '2') { displayName = configName3; }
-        if (data['display'] == '3') { displayName = configName4; }
-        if (data['display'] == '4') { displayName = configName5; }
-        if (data['display'] == '5') { displayName = configName6; }
+        if (data['display'] == '1') { displayName = configName1; }
+        if (data['display'] == '2') { displayName = configName2; }
+        if (data['display'] == '3') { displayName = configName3; }
+        if (data['display'] == '4') { displayName = configName4; }
+        if (data['display'] == '5') { displayName = configName5; }
+        if (data['display'] == '6') { displayName = configName6; }
+        console.log(data['display']);
+        console.log(parseInt(data['display']));
+        console.log(parseInt(data['display']) + 1);
+        console.log((parseInt(data['display']) + 1).toString());
+
         showProblem("Tamper Alert on " + displayName + "!");
+        document.querySelector('#display-' + data['display']).style.backgroundColor = "orange";
     }
 };
 
@@ -105,23 +113,29 @@ var timerInterval = setInterval(function() {
         showLoaders();
         LastDisplaysConnectionList = DisplaysConnectionList;
         DisplaysConnectionList = [false, false, false, false, false, false];
+        protectedConnectionList = [false, false, false, false, false, false];
         chatSocket.send(JSON.stringify({'command': 'get_connected_displays'}));
     }
     else if (timer == 7) {
         hideLoaders();
-        if (DisplaysConnectionList[0]) { document.querySelector('#display-1').style.backgroundColor = "green"; }
+        if (DisplaysConnectionList[0] && protectedConnectionList[0]) { document.querySelector('#display-1').style.backgroundColor = "green"; }
+        else if (DisplaysConnectionList[0]) { document.querySelector('#display-1').style.backgroundColor = "orange"; }
         else { document.querySelector('#display-1').style.backgroundColor = ""; }
 
-        if (DisplaysConnectionList[1] == true) { document.querySelector('#display-2').style.backgroundColor = "green"; }
+        if (DisplaysConnectionList[1] && protectedConnectionList[1]) { document.querySelector('#display-2').style.backgroundColor = "green"; }
+        else if (DisplaysConnectionList[1]) { document.querySelector('#display-2').style.backgroundColor = "orange"; }
         else { document.querySelector('#display-2').style.backgroundColor = ""; }
 
-        if (DisplaysConnectionList[2] == true) { document.querySelector('#display-3').style.backgroundColor = "green"; }
+        if (DisplaysConnectionList[2] && protectedConnectionList[2]) { document.querySelector('#display-3').style.backgroundColor = "green"; }
+        else if (DisplaysConnectionList[2]) { document.querySelector('#display-3').style.backgroundColor = "orange"; }
         else { document.querySelector('#display-3').style.backgroundColor = ""; }
 
-        if (DisplaysConnectionList[3] == true) { document.querySelector('#display-4').style.backgroundColor = "green"; }
+        if (DisplaysConnectionList[3] && protectedConnectionList[3]) { document.querySelector('#display-4').style.backgroundColor = "green"; }
+        else if (DisplaysConnectionList[3]) { document.querySelector('#display-4').style.backgroundColor = "orange"; }
         else { document.querySelector('#display-4').style.backgroundColor = ""; }
 
-        if (DisplaysConnectionList[4] == true) { document.querySelector('#display-5').style.backgroundColor = "green"; }
+        if (DisplaysConnectionList[4] && protectedConnectionList[4]) { document.querySelector('#display-5').style.backgroundColor = "green"; }
+        else if (DisplaysConnectionList[4]) { document.querySelector('#display-5').style.backgroundColor = "orange"; }
         else { document.querySelector('#display-5').style.backgroundColor = ""; }
 
         if (DisplaysConnectionList[5] == true) { document.querySelector('#display-6').style.backgroundColor = "green"; }
@@ -196,7 +210,8 @@ function hideLoader(LoaderID) {
     _loader = '#display-' + LoaderID + "-loader";
     document.querySelector(_reg).style.display = "block";
     document.querySelector(_loader).style.display = "none";
-    document.querySelector(_reg).style.backgroundColor = "green"
+    if (protectedConnectionList[LoaderID - 1])  { document.querySelector(_reg).style.backgroundColor = "green"; }
+    else { document.querySelector(_reg).style.backgroundColor = "orange"; }
 }
 
 $(document).ready(function(){

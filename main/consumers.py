@@ -82,7 +82,7 @@ class ChatConsumer(WebsocketConsumer):
     def set_connected_display(self, message):
         async_to_sync(self.channel_layer.group_send)(
             "main",
-            {'type': 'connectedDisplay', 'display': message['display']},
+            {'type': 'connectedDisplay', 'display': message['display'], 'is_protected': message['is_protected']},
         )
 
     def updateDisplayModel(self, message):
@@ -187,7 +187,7 @@ class ChatConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({'type': 'connectedDisplays'}))
 
     def connectedDisplay(self, event):
-        self.send(text_data=json.dumps({'type': 'connectedDisplay', 'display': event['display']}))
+        self.send(text_data=json.dumps({'type': 'connectedDisplay', 'display': event['display'], 'is_protected': event['is_protected']}))
 
     def tamperAlert(self, event):
         self.send(text_data=json.dumps({'type': 'tamperAlert', 'display': event['display']}))
