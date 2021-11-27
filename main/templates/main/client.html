@@ -20,76 +20,99 @@
             -webkit-text-security:disc;
             -mox-text-security:disc;
         }
+
+        #body:fullscreen {
+            background-color: grey;
+        }
+        #body:-webkit-full-screen {
+            background-color: grey;
+        }
+        #body:-moz-full-screen {
+            background-color: grey;
+        }
     </style>
 </head>
-<body style="background-color:grey;">
-    <div class="float-right" id="main">
-        <div class="d-flex align-items-center justify-content-center" style="height: 100vh">
-            <div class="d-flex align-items-center justify-content-center flex-column" style="height: 60vh">
-                <div class="p-2">
-                    <div class="border-0 rounded" style="height: 20vh; width: 40vh">
-                        <h1 style="color:#800000; font-family:impact;">Current: </h1>
-                        <h2 id="current-text" style="text-indent: 50px;"></h2>
+<body style="background-color:grey;" id="body">
+    <div style="background-color:grey;">
+        <div class="float-right" id="main">
+            <div class="d-flex align-items-center justify-content-center" style="height: 100vh">
+                <div class="d-flex align-items-center justify-content-center flex-column" style="height: 60vh">
+                    <div class="p-2">
+                        <div class="border-0 rounded" style="height: 20vh; width: 40vh">
+                            <h1 style="color:#800000; font-family:impact;">Current: </h1>
+                            <h2 id="current-text" style="text-indent: 50px;"></h2>
+                        </div>
                     </div>
-                </div>
-                <div class="p-2">
-                    <div class="border-0 rounded" style="height: 20vh; width: 40vh">
-                        <h1 style="color:#000099; font-family:impact;">Next: </h1>
-                        <h2 id="next-text" style="text-indent: 50px;"></h2>
+                    <div class="p-2">
+                        <div class="border-0 rounded" style="height: 20vh; width: 40vh">
+                            <h1 style="color:#000099; font-family:impact;">Next: </h1>
+                            <h2 id="next-text" style="text-indent: 50px;"></h2>
+                        </div>
                     </div>
-                </div>
-                <div class="p-2">
-                    <div class="border-0 rounded" style="height: 20vh; width: 40vh">
-                        <h1 style="color:#003300; font-family:impact;">After: </h1>
-                        <h2 id="after-text" style="text-indent: 50px;"></h2>
+                    <div class="p-2">
+                        <div class="border-0 rounded" style="height: 20vh; width: 40vh">
+                            <h1 style="color:#003300; font-family:impact;">After: </h1>
+                            <h2 id="after-text" style="text-indent: 50px;"></h2>
+                        </div>
                     </div>
-                </div>
-                <div class="p-2">
-                    <div class="border-0 rounded" style="height: 20vh; width: 40vh">
-                        <h1 style="color:#6600cc; font-family:impact;">Estimated Time: </h1>
-                        <h2 id="est-text" style="text-indent: 50px;"></h2>
+                    <div class="p-2">
+                        <div class="border-0 rounded" style="height: 20vh; width: 40vh">
+                            <h1 style="color:#6600cc; font-family:impact;">Estimated Time: </h1>
+                            <h2 id="est-text" style="text-indent: 50px;"></h2>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="container" id="mainContainer">
-        <div class="d-flex align-items-center justify-content-center flex-column" style="height: 100vh">
-            <div class="p-2">
-                <h1 style="color:white; font-family:impact; font-size:600%;">{{displayName}}</h1>
-            </div>
-        </div>
-    </div>
-    <div class="container" id="offlineContainer">
-        <div class="d-flex align-items-center justify-content-center flex-column" style="height: 100vh">
-            <div class="p-2">
-                <h1 style="color:#990000; font-family:impact; font-size:2000%;">Offline</h1>
-            </div>
-            <div class="p-2">
-                <h1 style="color:white; font-family:impact; font-size:200%;">We're working on it!</h1>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="Authorise" tabindex="-1" role="dialog" aria-labelledby="EditDisplayLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="EditDisplayLabel">Authorise</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <input type="search" class="form-control customPass" placeholder="" aria-label="Name: " aria-describedby="basic-addon1" id="RFID" autocomplete="off" disabled>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal" id="AuthoriseClose">Close</button>
-                    <button type="button" class="btn btn-success" id="AuthoriseSubmit">Authorise</button>
+        <div class="container" id="mainContainer">
+            <div class="d-flex align-items-center justify-content-center flex-column" style="height: 100vh">
+                <div class="p-2">
+                    <h1 style="color:white; font-family:impact; font-size:600%;">{{displayName}}</h1>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="modal fade" id="AdminControl" tabindex="-1" role="dialog" aria-labelledby="AdminControlLabel" aria-hidden="true">
+        <div class="container" id="offlineContainer">
+            <div class="d-flex align-items-center justify-content-center flex-column" style="height: 100vh">
+                <div class="p-2">
+                    <h1 style="color:#990000; font-family:impact; font-size:2000%;">Offline</h1>
+                </div>
+                <div class="p-2">
+                    <h1 style="color:white; font-family:impact; font-size:200%;">We're working on it!</h1>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="Authorise" tabindex="-1" role="dialog" aria-labelledby="EditDisplayLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="EditDisplayLabel">Authorise</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="search" class="form-control customPass" placeholder="" aria-label="Name: " aria-describedby="basic-addon1" id="RFID" autocomplete="off" disabled>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="AuthoriseClose">Close</button>
+                        <button type="button" class="btn btn-success" id="AuthoriseSubmit">Authorise</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="FullScreen" tabindex="-1" role="dialog" aria-labelledby="EditDisplayLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="FullScreenLabel">Press Btn To Join</h5>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" id="FullScreenBtn">Join</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="AdminControl" tabindex="-1" role="dialog" aria-labelledby="AdminControlLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -107,6 +130,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </body>
 

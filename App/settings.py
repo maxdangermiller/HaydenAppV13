@@ -73,6 +73,8 @@ TEMPLATES = [
     },
 ]
 
+# AUTH_USER_MODEL = 'account.Account'
+
 WSGI_APPLICATION = 'App.wsgi.application'
 ASGI_APPLICATION = "App.routing.application"
 CHANNEL_LAYERS = {

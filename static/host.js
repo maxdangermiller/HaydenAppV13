@@ -10,6 +10,11 @@ var EditingNumber = 0;
 
 var chatSocket = new WebSocket('ws://' + window.location.host + '/ws/main/');
 
+function showProblem(errorText) {
+    $("#ProblemDialogue").modal("show");
+    document.querySelector('#ProblemDialogueText').innerHTML = errorText;
+}
+
 var countdown = setInterval(function() {
     if (Est_Time != 0) {
         if (Est_Time_Seconds >= 60) {
@@ -59,6 +64,16 @@ chatSocket.onmessage = function(e) {
     else if (data['type'] === 'connectedDisplay') {
         hideLoader(data['display']);
         DisplaysConnectionList[data['display'] - 1] = true;
+    }
+    else if (data['type'] === 'tamperAlert') {
+        displayName = "ERROR";
+        if (data['display'] == '0') { displayName = configName1; }
+        if (data['display'] == '1') { displayName = configName2; }
+        if (data['display'] == '2') { displayName = configName3; }
+        if (data['display'] == '3') { displayName = configName4; }
+        if (data['display'] == '4') { displayName = configName5; }
+        if (data['display'] == '5') { displayName = configName6; }
+        showProblem("Tamper Alert on " + displayName + "!");
     }
 };
 
@@ -120,7 +135,14 @@ var timerInterval = setInterval(function() {
                 var options = {
                     body: "A Irregular Disconnection has occurred."
                 }
-                window.alert("Display" + x.toString() + " Has Disconnected!!!");
+                displayName = "ERROR";
+                if (x == 0) { displayName = configName1; }
+                if (x == 1) { displayName = configName2; }
+                if (x == 2) { displayName = configName3; }
+                if (x == 3) { displayName = configName4; }
+                if (x == 4) { displayName = configName5; }
+                if (x == 5) { displayName = configName6; }
+                showProblem("Display " + displayName + " Has Disconnected!");
             }
         }
 

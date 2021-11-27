@@ -140,6 +140,12 @@ class ChatConsumer(WebsocketConsumer):
                 'success': False,
             }))
 
+    def send_tamper_alert(self, message):
+        async_to_sync(self.channel_layer.group_send)(
+            "main",
+            {'type': 'tamperAlert', 'display': message['display']},
+        )
+
     commands = {
         'admin_send_update_message': admin_send_update_message,
         'new_message': new_message,
@@ -150,6 +156,7 @@ class ChatConsumer(WebsocketConsumer):
         'set_connected_display': set_connected_display,
         'updateDisplayModel': updateDisplayModel,
         'rfid_auth': rfid_auth,
+        'send_tamper_alert': send_tamper_alert,
     }
 
     def connect(self):
@@ -181,3 +188,6 @@ class ChatConsumer(WebsocketConsumer):
 
     def connectedDisplay(self, event):
         self.send(text_data=json.dumps({'type': 'connectedDisplay', 'display': event['display']}))
+
+    def tamperAlert(self, event):
+        self.send(text_data=json.dumps({'type': 'tamperAlert', 'display': event['display']}))

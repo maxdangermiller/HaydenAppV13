@@ -13,7 +13,7 @@
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
     <title>Hayden Auditorium</title>
 </head>
-<body style="background-color:grey;">
+<body style="background-color:grey;" id="body">
     <div class="container-lg">
         <div class="d-flex align-items-center justify-content-center flex-column" style="height: 100vh" id="container">
             <div class="p-2">
@@ -37,6 +37,7 @@
 </body>
 
 <script>
+
     document.querySelector('#btn-1').value = "{{config.display_one_name}}";
     document.querySelector('#btn-2').value = "{{config.display_two_name}}";
     document.querySelector('#btn-3').value = "{{config.display_three_name}}";

@@ -8,7 +8,43 @@ var CurrentlyEnteringAdminCode = false;
 
 var HasGottenANewUpdate = false;
 
+function openFullscreen() {
+    console.log('opening full-screen mode.');
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+    } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
+        document.documentElement.webkitRequestFullscreen();
+    } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
+        document.documentElement.msRequestFullscreen();
+    }
+    $("#FullScreen").modal("hide");
+}
+$("#FullScreen").modal("show");
+// document.getElementById("FullScreenBtn").onclick = openFullscreen();
+document.getElementById('FullScreenBtn').onclick = function(e) {
+    console.log('opening full-screen mode. ');
+    if (document.getElementById("body").requestFullscreen) {
+        document.getElementById("body").requestFullscreen();
+    } else if (document.getElementById("body").webkitRequestFullscreen) { /* Safari */
+        document.getElementById("body").webkitRequestFullscreen();
+    } else if (document.getElementById("body").msRequestFullscreen) { /* IE11 */
+        document.getElementById("body").msRequestFullscreen();
+    }
+    $("#FullScreen").modal("hide");
+};
+
+
 var chatSocket = new ReconnectingWebSocket('ws://' + window.location.host + '/ws/main/');
+
+document.addEventListener('fullscreenchange', (event) => {
+  if (document.fullscreenElement) {
+    console.log('Entered fullscreen mode.');
+  } else {
+    console.log('Leaving full-screen mode.');
+    chatSocket.send(JSON.stringify({'command': 'send_tamper_alert', 'display': DisplayNumb}));
+    alert("Tampering Reported.");
+  }
+});
 
 var countdown = setInterval(function() {
     if (Est_Time != 0) {
