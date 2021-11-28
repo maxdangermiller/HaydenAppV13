@@ -9,7 +9,7 @@ var protectedConnectionList = [false, false, false, false, false, false];
 var timer = 5;
 var EditingNumber = 0;
 
-var chatSocket = new WebSocket('ws://' + window.location.host + '/ws/main/');
+var chatSocket = new WebSocket('wss://' + window.location.host + '/ws/main/');
 
 function showProblem(errorText) {
     $("#ProblemDialogue").modal("show");

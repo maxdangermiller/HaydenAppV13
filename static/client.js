@@ -35,7 +35,7 @@ document.getElementById('FullScreenBtn').onclick = function(e) {
 };
 
 
-var chatSocket = new ReconnectingWebSocket('ws://' + window.location.host + '/ws/main/');
+var chatSocket = new ReconnectingWebSocket('wss://' + window.location.host + '/ws/main/');
 
 document.addEventListener('fullscreenchange', (event) => {
   if (document.fullscreenElement) {
