@@ -68,8 +68,6 @@ class ChatConsumer(WebsocketConsumer):
         )
 
     def get_list(self, message):
-        Mapping = SceneList.objects.get_or_create(id=0).getList()
-        print(Mapping)
         self.send(text_data=json.dumps({
             'type': 'get_list',
             'data': Mapping,
@@ -162,7 +160,7 @@ class ChatConsumer(WebsocketConsumer):
     }
 
     def connect(self):
-        Mapping = SceneList.objects.get_or_create(id=0).getList()
+        Mapping = SceneList.objects.get_or_create(id=1).getList()
         print(Mapping)
         async_to_sync(self.channel_layer.group_add)("main", self.channel_name)
         self.accept()
