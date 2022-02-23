@@ -7,6 +7,7 @@ var AdminCurrentString = "";
 var CurrentlyEnteringAdminCode = false;
 
 var HasGottenANewUpdate = false;
+var isInFullscreen = false;
 
 function openFullscreen() {
     console.log('opening full-screen mode.');
@@ -34,14 +35,17 @@ document.getElementById('FullScreenBtn').onclick = function(e) {
 };
 
 
-var chatSocket = new ReconnectingWebSocket('ws://' + window.location.host + '/ws/main/');
+var chatSocket = new ReconnectingWebSocket('wss://' + window.location.host + '/ws/main/');
 
 document.addEventListener('fullscreenchange', (event) => {
   if (document.fullscreenElement) {
     console.log('Entered fullscreen mode.');
+    isInFullscreen = true;
   } else {
     console.log('Leaving full-screen mode.');
+    isInFullscreen = false;
     chatSocket.send(JSON.stringify({'command': 'send_tamper_alert', 'display': DisplayNumb}));
+    alert("Tampering Reported.");
   }
 });
 
@@ -70,9 +74,13 @@ chatSocket.onopen = function(e) {
     setTimeout(IsStillOnline, 10000);
 }
 
+function playSound() {
+    var audio = new Audio(audioFile);
+    audio.play();
+}
+
 chatSocket.onmessage = function(e) {
     var data = JSON.parse(e.data);
-    console.log(data);
     if (data['type'] === 'UpdateLocation') {
         document.getElementById('current-text').innerHTML = data['current'];
         document.getElementById('next-text').innerHTML = data['next'];
@@ -80,8 +88,13 @@ chatSocket.onmessage = function(e) {
         Est_Time_Seconds = 0;
         Est_Set = true;
         Est_Time = data['est'];
+        if (_playSound == true) {
+            playSound();
+        }
     } else if (data['type'] === 'connectedDisplays') {
-        chatSocket.send(JSON.stringify({'command': 'set_connected_display', 'display': DisplayNumb}));
+        chatSocket.send(JSON.stringify({'command': 'set_connected_display', 'display': DisplayNumb, 'is_protected': isInFullscreen}));
+        document.getElementById('mainContainer').style.display = "block";
+        document.getElementById('offlineContainer').style.display = "none";
         HasGottenANewUpdate = true;
     } else if (data['type'] === 'rfid_auth') {
         $("#Authorise").modal("hide");
