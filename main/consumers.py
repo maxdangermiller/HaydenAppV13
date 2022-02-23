@@ -11,6 +11,12 @@ Est_Times = list([5, 4, 3, 2, 1])
 class ChatConsumer(WebsocketConsumer):
 
     def admin_send_update_message(self, data):
+        global Mapping
+
+        sceneList = SceneList.objects.get(id=1)
+        Mapping.clear()
+        for word in sceneList.sceneList.split(","):
+            Mapping.append(word)
 
         index = int(data["index"])
         Simple = True
@@ -160,17 +166,12 @@ class ChatConsumer(WebsocketConsumer):
     }
 
     def connect(self):
+        global Mapping
+
         sceneList = SceneList.objects.get(id=1)
-        try:
-            out = []
-            test = sceneList.sceneList
-            print(test)
-            for word in test.split(","):
-                out.append(word)
-            Mapping = out
-            print(Mapping)
-        except AttributeError:
-            print("ERROR")
+        Mapping.clear()
+        for word in sceneList.sceneList.split(","):
+            Mapping.append(word)
         
         async_to_sync(self.channel_layer.group_add)("main", self.channel_name)
         self.accept()
