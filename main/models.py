@@ -33,6 +33,6 @@ class SceneList(models.Model):
     def getList(self):
         out = []
         test = self.sceneList
-        for word in test.strip("[", "").strip("]", "").split(","):
+        for word in test.split(","):
             out.append(word)
         return out
