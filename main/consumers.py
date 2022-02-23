@@ -164,6 +164,7 @@ class ChatConsumer(WebsocketConsumer):
         try:
             out = []
             test = sceneList.sceneList
+            print(test)
             for word in test.split(","):
                 out.append(word)
             Mapping = out
