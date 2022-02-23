@@ -88,7 +88,7 @@ chatSocket.onmessage = function(e) {
         Est_Time_Seconds = 0;
         Est_Set = true;
         Est_Time = data['est'];
-        if (_playSound == true) {
+        if (_playSound == "True") {
             playSound();
         }
     } else if (data['type'] === 'connectedDisplays') {
