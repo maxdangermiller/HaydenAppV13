@@ -162,8 +162,11 @@ class ChatConsumer(WebsocketConsumer):
     def connect(self):
         sceneList = SceneList.objects.get_or_create(id=1)
         try:
-            print(sceneList)
-            Mapping = sceneList.getList()
+            out = []
+            test = sceneList.sceneList
+            for word in test.split(","):
+                out.append(word)
+            Mapping = out
             print(Mapping)
         except AttributeError:
             print("ERROR")
