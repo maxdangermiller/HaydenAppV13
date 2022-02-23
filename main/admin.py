@@ -3,3 +3,4 @@ from .models import *
 
 admin.site.register(DisplayConfig)
 admin.site.register(RFIDData)
+admin.site.register(SceneList)
