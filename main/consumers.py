@@ -160,8 +160,14 @@ class ChatConsumer(WebsocketConsumer):
     }
 
     def connect(self):
-        Mapping = SceneList.objects.get_or_create(id=1).getList()
-        print(Mapping)
+        sceneList = SceneList.objects.get_or_create(id=1)
+        try:
+            print(sceneList)
+            Mapping = sceneList.getList()
+            print(Mapping)
+        except AttributeError:
+            print("ERROR")
+        
         async_to_sync(self.channel_layer.group_add)("main", self.channel_name)
         self.accept()
 
