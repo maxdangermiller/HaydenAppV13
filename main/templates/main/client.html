@@ -135,7 +135,11 @@
 </body>
 
 <script src="{% static 'reconnecting-websocket.js' %}"></script>
-<script>var DisplayNumb = "{{displayID}}";</script>
+<script>
+    var DisplayNumb = "{{displayID}}";
+    var audioFile = "{% static 'gong.mp3' %}";
+    var audioEnable = "{{audioEnable}}";
+</script>
 <script src="{% static 'client.js' %}"></script>
 
 </html>

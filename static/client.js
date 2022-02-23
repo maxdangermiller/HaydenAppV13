@@ -74,6 +74,11 @@ chatSocket.onopen = function(e) {
     setTimeout(IsStillOnline, 10000);
 }
 
+function playSound() {
+    var audio = new Audio(audioFile);
+    audio.play();
+}
+
 chatSocket.onmessage = function(e) {
     var data = JSON.parse(e.data);
     if (data['type'] === 'UpdateLocation') {
@@ -83,6 +88,9 @@ chatSocket.onmessage = function(e) {
         Est_Time_Seconds = 0;
         Est_Set = true;
         Est_Time = data['est'];
+        if (_playSound == true) {
+            playSound();
+        }
     } else if (data['type'] === 'connectedDisplays') {
         chatSocket.send(JSON.stringify({'command': 'set_connected_display', 'display': DisplayNumb, 'is_protected': isInFullscreen}));
         document.getElementById('mainContainer').style.display = "block";
