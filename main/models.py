@@ -25,3 +25,14 @@ class DisplayConfig(models.Model):
 class RFIDData(models.Model):
     RFID = models.CharField(max_length=50)
     IsSuperUserKey = models.BooleanField(default=False)
+
+
+class SceneList(models.Model):
+    sceneList = models.CharField(max_length=600)
+
+    def getList(self):
+        out = []
+        test = self.sceneList
+        for word in test.strip("[", "").strip("]", "").split(","):
+            out.append(word)
+        return out

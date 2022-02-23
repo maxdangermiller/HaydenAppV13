@@ -68,6 +68,7 @@ class ChatConsumer(WebsocketConsumer):
         )
 
     def get_list(self, message):
+        Mapping = SceneList.objects.get_or_create(id=0).getList()
         self.send(text_data=json.dumps({
             'type': 'get_list',
             'data': Mapping,
