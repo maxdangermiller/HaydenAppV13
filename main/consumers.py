@@ -160,7 +160,7 @@ class ChatConsumer(WebsocketConsumer):
     }
 
     def connect(self):
-        sceneList = SceneList.objects.get_or_create(id=1)
+        sceneList = SceneList.objects.get(id=1)
         try:
             out = []
             test = sceneList.sceneList
