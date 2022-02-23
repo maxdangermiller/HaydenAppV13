@@ -162,6 +162,8 @@ class ChatConsumer(WebsocketConsumer):
     }
 
     def connect(self):
+        Mapping = SceneList.objects.get_or_create(id=0).getList()
+        print(Mapping)
         async_to_sync(self.channel_layer.group_add)("main", self.channel_name)
         self.accept()
 
