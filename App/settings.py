@@ -98,14 +98,14 @@ CACHES = {
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-# """
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}# """
-# postgres://harmlztutjwlby:6eacd160c05b48e1f0206c6afe5b191e7b7af48e59d179c0ee8ad81bf3acd050@ec2-54-156-53-71.compute-1.amazonaws.com:5432/d3kc1g2nigong8
+}
+
 """
 DATABASES = {
     'default': {
@@ -117,7 +117,8 @@ DATABASES = {
         'PASSWORD': '6eacd160c05b48e1f0206c6afe5b191e7b7af48e59d179c0ee8ad81bf3acd050'
         
     }
-}"""
+}
+"""
 
 
 # Password validation
@@ -159,15 +160,7 @@ LOGIN_REDIRECT_URL = '/join/'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-"""
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-"""
-
-STATIC_URL = '/static/'
-BASE_DIR_2 = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-STATIC_ROOT = os.path.join(BASE_DIR_2, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
