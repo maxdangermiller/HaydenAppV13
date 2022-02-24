@@ -98,13 +98,13 @@ CACHES = {
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-"""
+# """
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}"""
+}# """
 # postgres://harmlztutjwlby:6eacd160c05b48e1f0206c6afe5b191e7b7af48e59d179c0ee8ad81bf3acd050@ec2-54-156-53-71.compute-1.amazonaws.com:5432/d3kc1g2nigong8
 """
 DATABASES = {
