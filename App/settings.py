@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 import os
 from pathlib import Path
-import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -99,15 +98,25 @@ CACHES = {
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-        'CONN_MAX_AGE': 500
+    }
+}"""
+# postgres://harmlztutjwlby:6eacd160c05b48e1f0206c6afe5b191e7b7af48e59d179c0ee8ad81bf3acd050@ec2-54-156-53-71.compute-1.amazonaws.com:5432/d3kc1g2nigong8
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'd3kc1g2nigong8',
+        'HOST': 'ec2-54-156-53-71.compute-1.amazonaws.com',
+        'PORT': '5432',
+        'USER': 'harmlztutjwlby',
+        'PASSWORD': '6eacd160c05b48e1f0206c6afe5b191e7b7af48e59d179c0ee8ad81bf3acd050'
+        
     }
 }
-DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 
 # Password validation
