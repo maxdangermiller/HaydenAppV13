@@ -23,7 +23,10 @@ class ChatConsumer(WebsocketConsumer):
         if not Simple:
             if len(Mapping) > index:
                 _current = Mapping[index]
-                _est = Est_Times[index]
+                try:
+                    _est = Est_Times[index]
+                except IndexError:
+                    _est = 0
                 if len(Mapping) > index + 1:
                     _next = Mapping[index + 1]
                     if len(Mapping) > index + 2:
