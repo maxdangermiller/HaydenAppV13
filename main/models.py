@@ -28,7 +28,7 @@ class RFIDData(models.Model):
 
 
 class SceneList(models.Model):
-    sceneList = models.CharField(max_length=600)
+    sceneList = models.CharField(max_length=2000)
 
     def getList(self):
         out = []

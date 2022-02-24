@@ -7,6 +7,8 @@ from .models import *
 Mapping = list(["hello", "World", "I", "Like", "Bananas", "", ""])
 Est_Times = list([5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
+# Prologue, Belle, Belle Playoff
+
 
 class ChatConsumer(WebsocketConsumer):
 
