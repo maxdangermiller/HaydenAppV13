@@ -154,10 +154,12 @@ document.getElementById('AdminControl-Reload').onclick  = function(e) { location
 
 function IsStillOnline() {
     if (HasGottenANewUpdate) {
+        console.log("Online");
         HasGottenANewUpdate = false;
         document.getElementById('mainContainer').style.display = "block";
         document.getElementById('offlineContainer').style.display = "none";
     } else {
+        console.log("Offline");
         document.getElementById('mainContainer').style.display = "none";
         document.getElementById('offlineContainer').style.display = "block";
     }
