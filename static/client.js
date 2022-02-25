@@ -156,11 +156,11 @@ function IsStillOnline() {
     if (HasGottenANewUpdate) {
         console.log("Online");
         HasGottenANewUpdate = false;
-        document.getElementById('mainContainer').style.display = "block";
+        document.getElementById('mainContainer').style.display = "flex!important";
         document.getElementById('offlineContainer').style.display = "none";
     } else {
         console.log("Offline");
-        document.getElementById('mainContainer').style.display = "none";
+        document.getElementById('mainContainer').style.display = "none!important";
         console.log(document.getElementById('mainContainer').style.display)
         document.getElementById('offlineContainer').style.display = "block";
     }
