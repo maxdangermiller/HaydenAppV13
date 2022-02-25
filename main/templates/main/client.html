@@ -85,6 +85,18 @@
             align-items: center;
             justify-content: center!important;
         }
+
+        .estBox {
+            position: fixed;
+            bottom: 0px;
+            right: 0px;
+            left: 0px;
+            height: 15vh; 
+            display: flex!important;
+            flex-direction: column!important;
+            align-items: center;
+            justify-content: center!important;
+        }
     </style>
 </head>
 <body style="background-color:grey;" id="body">
@@ -114,7 +126,7 @@
                     </div>
                 </div>
             </div>
-            <div class="d-flex align-items-center justify-content-center flex-row" style="height: 10vh; width: 100vw;">
+            <div class="estBox" style="height: 10vh; width: 100vw;">
                 <h1 style="color:#6600cc; font-family:impact; font-size:3vh;">Estimated Time: </h1>
                 <h2 id="est-text" style="text-indent: 10px; font-size:4vh;"></h2>
             </div>
