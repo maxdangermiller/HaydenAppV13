@@ -91,7 +91,7 @@ chatSocket.onmessage = function(e) {
         Est_Time = data['est'];
     } else if (data['type'] === 'connectedDisplays') {
         chatSocket.send(JSON.stringify({'command': 'set_connected_display', 'display': DisplayNumb, 'is_protected': isInFullscreen}));
-        document.getElementById('mainContainer').style.display = "block";
+        document.getElementById('mainContainer').style.display = "flex";
         document.getElementById('offlineContainer').style.display = "none";
         HasGottenANewUpdate = true;
     } else if (data['type'] === 'rfid_auth') {
