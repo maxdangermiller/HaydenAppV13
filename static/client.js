@@ -71,7 +71,7 @@ chatSocket.onopen = function(e) {
     document.getElementById('mainContainer').style.display = "block";
     document.getElementById('offlineContainer').style.display = "none";
     update();
-    setTimeout(IsStillOnline, 10000);
+    IsStillOnline();
 }
 
 function playSound() {
