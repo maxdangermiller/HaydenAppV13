@@ -97,6 +97,12 @@
             align-items: center;
             justify-content: center!important;
         }
+
+        .centerThing {
+            display: flex!important;
+            flex-direction: column!important;
+            justify-content: center!important;
+        }
     </style>
 </head>
 <body style="background-color:grey;" id="body">
@@ -113,13 +119,13 @@
                 </div>
                 <div class="p-2">
                     <div class="d-flex align-items-center justify-content-center flex-row" style="margin: 2vh;">
-                        <div style="height: 18vh; width: 39vw; margin: 1vw;">
+                        <div class="centerThing" style="height: 18vh; width: 39vw; margin: 1vw;">
                             <h1 style="color:#000099; font-family:impact; font-size:8vh;">Next: </h1>
                             <div class="nextBox">
                                 <h2 id="next-text" style="text-indent: 1vw; font-size:6vh; margin-bottom: 0;"></h2>
                             </div>
                         </div>
-                        <div style="height: 18vh; width: 39vw; margin: 1vw;">
+                        <div class="centerThing" style="height: 18vh; width: 39vw; margin: 1vw;">
                             <h1 style="color:#003300; font-family:impact; font-size:8vh;">After: </h1>
                             <div class="afterBox">
                                 <h2 id="after-text" style="text-indent: 1vw; font-size:6vh; margin-bottom: 0;"></h2>
