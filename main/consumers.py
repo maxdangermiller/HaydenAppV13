@@ -5,7 +5,7 @@ from .models import *
 
 
 Mapping = list(["hello", "World", "I", "Like", "Bananas", "", ""])
-Est_Times = list([5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+Est_Times = list([0])
 
 # Prologue, Belle, Belle Playoff
 
@@ -48,7 +48,10 @@ class ChatConsumer(WebsocketConsumer):
                 _current = Mapping[index]
                 _next = Mapping[index + 1]
                 _after = Mapping[index + 2]
-                _est = Est_Times[index]
+                try:
+                    _est = Est_Times[index]
+                except IndexError:
+                    _est = 0
             else:
                 _current = ""
                 _next = ""
