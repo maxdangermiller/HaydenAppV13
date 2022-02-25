@@ -90,6 +90,8 @@ chatSocket.onmessage = function(e) {
         Est_Set = true;
         Est_Time = data['est'];
     } else if (data['type'] === 'connectedDisplays') {
+        console.log("connectedDisplays");
+        console.log(DisplayNumb);
         chatSocket.send(JSON.stringify({'command': 'set_connected_display', 'display': DisplayNumb, 'is_protected': isInFullscreen}));
         document.getElementById('mainContainer').style.display = "flex";
         document.getElementById('offlineContainer').style.display = "none";
