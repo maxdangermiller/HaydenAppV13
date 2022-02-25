@@ -20,7 +20,7 @@ def clients(request):
 
 
 def client(request, displayID):
-    config = DisplayConfig.objects.get(id=1)
+    config = DisplayConfig.objects.all()[0]
     if displayID == 1:
         displayName = config.display_one_name
         audioEnable = config.display_one_play_sound
