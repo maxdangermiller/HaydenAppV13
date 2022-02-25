@@ -21,10 +21,16 @@ class DisplayConfig(models.Model):
     display_six_name = models.CharField(max_length=50)
     display_six_play_sound = models.BooleanField()
 
+    def __str__(self) -> str:
+        return f"DisplayConfig ({self.id})"
+
 
 class RFIDData(models.Model):
     RFID = models.CharField(max_length=50)
     IsSuperUserKey = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return f"RFID Data - {self.RFID}"
 
 
 class SceneList(models.Model):
@@ -36,3 +42,6 @@ class SceneList(models.Model):
         for word in test.split(","):
             out.append(word)
         return out
+    
+    def __str__(self):
+        return f"Scene List ({self.id})"

@@ -14,11 +14,13 @@ class ChatConsumer(WebsocketConsumer):
 
     def admin_send_update_message(self, data):
         global Mapping
-
-        sceneList = SceneList.objects.get(id=1)
-        Mapping.clear()
-        for word in sceneList.sceneList.split(","):
-            Mapping.append(word)
+        try:
+            sceneList = SceneList.objects.all()[0]
+            Mapping.clear()
+            for word in sceneList.sceneList.split(","):
+                Mapping.append(word)
+        except IndexError:
+            Mapping = ["", "", ""]
 
         index = int(data["index"])
         Simple = True
@@ -113,7 +115,7 @@ class ChatConsumer(WebsocketConsumer):
         configName6 = message['configName6']
         configSound6 = message['configSound6']
 
-        config = DisplayConfig.objects.get(id=1)
+        config = DisplayConfig.objects.all()[0]
         config.display_one_name = configName1
         config.display_one_play_sound = configSound1
 
@@ -176,7 +178,7 @@ class ChatConsumer(WebsocketConsumer):
     def connect(self):
         global Mapping
 
-        sceneList = SceneList.objects.get(id=1)
+        sceneList = SceneList.objects.all()[0]
         Mapping.clear()
         for word in sceneList.sceneList.split(","):
             Mapping.append(word)
