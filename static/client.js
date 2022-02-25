@@ -68,7 +68,7 @@ var countdown = setInterval(function() {
 }, 1000)
 
 chatSocket.onopen = function(e) {
-    document.getElementById('mainContainer').style.display = "block";
+    document.getElementById('mainContainer').style.display = "flex";
     document.getElementById('offlineContainer').style.display = "none";
     update();
     IsStillOnline();
@@ -156,11 +156,11 @@ function IsStillOnline() {
     if (HasGottenANewUpdate) {
         console.log("Online");
         HasGottenANewUpdate = false;
-        document.getElementById('mainContainer').style.display = "flex!important";
+        document.getElementById('mainContainer').style.display = "flex";
         document.getElementById('offlineContainer').style.display = "none";
     } else {
         console.log("Offline");
-        document.getElementById('mainContainer').style.display = "none!important";
+        document.getElementById('mainContainer').style.display = "none";
         console.log(document.getElementById('mainContainer').style.display)
         document.getElementById('offlineContainer').style.display = "block";
     }
