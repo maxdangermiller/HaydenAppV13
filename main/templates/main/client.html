@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-{% load static %}
+
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
@@ -16,9 +16,9 @@
 
     <style>
         customPass {
-            text-security:disc;
-            -webkit-text-security:disc;
-            -mox-text-security:disc;
+            text-security: disc;
+            -webkit-text-security: disc;
+            -mox-text-security: disc;
         }
 
         #body:fullscreen {
@@ -31,63 +31,111 @@
             background-color: grey;
         }
 
-        .bottomright {
+        .bottom {
             position: fixed;
-            right: 0px; bottom: 0px;
+            bottom: 0px;
+            right: 50vw;
+            left:50vw;
             width: 20vw;
             height:15vh;
             padding: 5px;
+        }
+
+        .currentBox {
+            height: 20vh; 
+            width: 100%; 
+            border: 6px solid #800000; 
+            border-radius: 0.25rem; 
+            padding: 5px; 
+            display: flex!important;
+            flex-direction: column!important;
+            justify-content: center!important;
+        }
+
+        .nextBox {
+            height: 12vh; 
+            width: 100%; 
+            border: 6px solid #000099; 
+            border-radius: 0.25rem; 
+            padding: 5px; 
+            display: flex!important;
+            flex-direction: column!important;
+            justify-content: center!important;
+        }
+
+        .afterBox {
+            height: 12vh; 
+            width: 100%; 
+            border: 6px solid #003300; 
+            border-radius: 0.25rem; 
+            padding: 5px; 
+            display: flex!important;
+            flex-direction: column!important;
+            justify-content: center!important;
+        }
+
+        .titleBox {
+            height: 15vh; 
+            width: 100%; 
+            display: flex!important;
+            flex-direction: column!important;
+            align-items: center;
+            justify-content: center!important;
         }
     </style>
 </head>
 <body style="background-color:grey;" id="body">
     <div style="background-color:grey;">
         <div class="d-flex align-items-center justify-content-center flex-column" id="mainContainer" style="height: 100vh; width: 100vw;">
-            <div class="d-flex align-items-center justify-content-center" style="height: 15vh;">
-                <p style="color:white; font-family:impact; font-size:8vh;">{{displayName}}</p>
+            <div class="titleBox" >
+                <h1 style="color:white; font-family:impact; font-size:8vh;">{{displayName}}</h1>
             </div>
             <div class="d-flex align-items-center justify-content-center flex-column" style="height: 75vh; width: 100vw;">
                 <div class="p-2">
-                    <div style="height: 30vh; width: 80vw; border: 6px solid #800000; border-radius: 0.25rem; padding: 5px;">
-                        <h1 style="color:#800000; font-family:impact; font-size:6vh;">Current: </h1>
-                        <h2 id="current-text" style="text-indent: 50px; font-size:8vh; "></h2>
+                    <div style="height: 30vh; width: 80vw; ">
+                        <h1 style="color:#800000; font-family:impact; font-size:10vh;">Current: </h1>
+                        <div class="currentBox">
+                            <h2 id="current-text" style="text-indent: 4vw; font-size:12vh; "></h2>
+                        </div>
                     </div>
                 </div>
-                <div class="d-flex align-items-center justify-content-center flex-row">
-                    <div style="height: 18vh; width: 39vw; border: 6px solid #000099; border-radius: 0.25rem; padding: 5px; margin: 1vw;">
-                        <h1 style="color:#000099; font-family:impact; font-size:5vh;">Next: </h1>
-                        <h2 id="next-text" style="text-indent: 50px; font-size:4vh;"></h2>
+                <div class="d-flex align-items-center justify-content-center flex-row" style="margin: 2vh;">
+                    <div style="height: 18vh; width: 39vw; margin: 1vw;">
+                        <h1 style="color:#000099; font-family:impact; font-size:8vh;">Next: </h1>
+                        <div class="nextBox">
+                            <h2 id="current-text" style="text-indent: 4vw; font-size:6vh; margin-bottom: 0;"></h2>
+                        </div>
                     </div>
-                    <div style="height: 18vh; width: 39vw; border: 6px solid #003300; border-radius: 0.25rem; padding: 5px; margin: 1vw;">
-                        <h1 style="color:#003300; font-family:impact; font-size:5vh;">After: </h1>
-                        <h2 id="after-text" style="text-indent: 50px; font-size:4vh;"></h2>
+                    <div style="height: 18vh; width: 39vw; margin: 1vw;">
+                        <h1 style="color:#003300; font-family:impact; font-size:8vh;">After: </h1>
+                        <div class="afterBox">
+                            <h2 id="current-text" style="text-indent: 4vw; font-size:6vh; margin-bottom: 0;"></h2>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="d-flex align-items-center justify-content-center flex-column bottomright">
-            <div style="height: 100%; width: 100%; border: 4px solid #6600cc; border-radius: 0.25rem; padding: 5px;">
+            <div class="d-flex align-items-center justify-content-center flex-row" style="height: 10vh; width: 100vw;">
                 <h1 style="color:#6600cc; font-family:impact; font-size:3vh;">Estimated Time: </h1>
-                <h2 id="est-text" style="text-indent: 50px; font-size:4vh;"></h2>
+                <h2 id="est-text" style="text-indent: 10px; font-size:4vh;"></h2>
             </div>
         </div>
-
+        
         <div class="container" id="offlineContainer">
             <div class="d-flex align-items-center justify-content-center flex-column" style="height: 100vh">
                 <div class="p-2">
-                    <h1 style="color:#990000; font-family:impact; font-size:30vh;">Offline</h1>
+                    <h1 style="color:#990000; font-family:impact; font-size:2000%;">Offline</h1>
                 </div>
                 <div class="p-2">
-                    <h1 style="color:white; font-family:impact; font-size:10vh%;">We're working on it!</h1>
+                    <h1 style="color:white; font-family:impact; font-size:200%;">We're working on it!</h1>
                 </div>
             </div>
         </div>
+        
         <div class="modal fade" id="Authorise" tabindex="-1" role="dialog" aria-labelledby="EditDisplayLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="EditDisplayLabel">Authorise</h5>
+                        <h5 class="modal-title" id="EditDisplayLabel">Authorize</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -97,7 +145,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal" id="AuthoriseClose">Close</button>
-                        <button type="button" class="btn btn-success" id="AuthoriseSubmit">Authorise</button>
+                        <button type="button" class="btn btn-success" id="AuthoriseSubmit">Authorize</button>
                     </div>
                 </div>
             </div>
@@ -118,7 +166,7 @@
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="AdminControlLabel">Authorise</h5>
+                    <h5 class="modal-title" id="AdminControlLabel">Authorize</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -136,12 +184,13 @@
     </div>
 </body>
 
-<script src="{% static 'reconnecting-websocket.js' %}"></script>
+<script src="/static/reconnecting-websocket.js"></script>
 <script>
-    var DisplayNumb = "{{displayID}}";
-    var audioFile = "{% static 'gong.mp3' %}";
-    var _playSound = "{{audioEnable}}";
+    var DisplayNumb = "1";
+    var audioFile = "/static/gong.mp3";
+    var _playSound = "True";
+    document.getElementById('offlineContainer').style.display = "none";
 </script>
-<script src="{% static 'client.js' %}"></script>
+<script src="/static/client.js"></script>
 
 </html>
