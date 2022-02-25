@@ -161,6 +161,7 @@ function IsStillOnline() {
     } else {
         console.log("Offline");
         document.getElementById('mainContainer').style.display = "none";
+        console.log(document.getElementById('mainContainer').style.display)
         document.getElementById('offlineContainer').style.display = "block";
     }
     setTimeout(IsStillOnline, 10000);
