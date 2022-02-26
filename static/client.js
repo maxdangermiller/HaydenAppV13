@@ -68,7 +68,7 @@ var countdown = setInterval(function() {
         Est_Time_Seconds += 1;
     }
     else {
-        document.getElementById('est-text').innerHTML = "0 Minutes";
+        document.getElementById('est-text').innerHTML = "~";
     }
 }, 1000)
 
