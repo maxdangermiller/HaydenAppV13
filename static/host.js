@@ -17,7 +17,7 @@ function showProblem(errorText) {
 }
 
 var countdown = setInterval(function() {
-    if (Est_Time != 0) {
+    if (Est_Time != 0 && Est_Time != -1) {
         if (Est_Time_Seconds >= 60) {
             document.getElementById('est-text').innerHTML = Est_Time.toString() + " Minutes";
             Est_Time -= 1;
@@ -28,8 +28,9 @@ var countdown = setInterval(function() {
             document.getElementById('est-text').innerHTML = Est_Time.toString() + " Minutes";
         }
         Est_Time_Seconds += 1;
-    }
-    else {
+    } else if (Est_Time == -1) {
+        document.getElementById('est-text').innerHTML = "No Estimated Time";
+    } else {
         document.getElementById('est-text').innerHTML = "0 Minutes";
     }
 }, 1000)
