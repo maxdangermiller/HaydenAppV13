@@ -5,7 +5,7 @@ from .models import *
 
 
 Mapping = list(["hello", "World", "I", "Like", "Bananas", "", ""])
-Est_Times = list([0])
+Est_Times = list([])
 
 # Prologue, Belle, Belle Playoff
 
@@ -30,7 +30,7 @@ class ChatConsumer(WebsocketConsumer):
                 try:
                     _est = Est_Times[index]
                 except IndexError:
-                    _est = 0
+                    _est = -1
                 if len(Mapping) > index + 1:
                     _next = Mapping[index + 1]
                     if len(Mapping) > index + 2:
@@ -44,7 +44,7 @@ class ChatConsumer(WebsocketConsumer):
                 _current = ""
                 _next = ""
                 _after = ""
-                _est = 0
+                _est = -1
         else:
             if len(Mapping) > index:
                 _current = Mapping[index]
@@ -53,12 +53,12 @@ class ChatConsumer(WebsocketConsumer):
                 try:
                     _est = Est_Times[index]
                 except IndexError:
-                    _est = 0
+                    _est = -1
             else:
                 _current = ""
                 _next = ""
                 _after = ""
-                _est = 0
+                _est = -1
         async_to_sync(self.channel_layer.group_send)(
             "main",
             {'type': 'UpdateLocation', 'current': _current, 'next': _next, 'after': _after, 'est': _est},

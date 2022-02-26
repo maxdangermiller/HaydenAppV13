@@ -58,7 +58,12 @@ var countdown = setInterval(function() {
         }
         if (Est_Set) {
             Est_Set = false;
-            document.getElementById('est-text').innerHTML = Est_Time.toString() + " Minutes";
+            if (Est_Time == -1) {
+                document.getElementById('est-text').innerHTML = "~";
+                Est_Time = 0;
+            } else {
+                document.getElementById('est-text').innerHTML = Est_Time.toString() + " Minutes";
+            }
         }
         Est_Time_Seconds += 1;
     }
