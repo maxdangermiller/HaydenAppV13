@@ -6,7 +6,7 @@ var Est_Time_Seconds;
 var LastDisplaysConnectionList = [false, false, false, false, false, false];
 var DisplaysConnectionList = [false, false, false, false, false, false];
 var protectedConnectionList = [false, false, false, false, false, false];
-var timer = 5;
+var timer = 2;
 var EditingNumber = 0;
 
 var chatSocket = new WebSocket('wss://' + window.location.host + '/ws/main/');
@@ -109,14 +109,14 @@ function get_length_of_list() { chatSocket.send(JSON.stringify({'command': 'get_
 function update() { chatSocket.send(JSON.stringify({'command': 'ask_admin_for_current_increment'})); }
 
 var timerInterval = setInterval(function() {
-    if (timer == 5){
+    if (timer == 2){
         showLoaders();
         LastDisplaysConnectionList = DisplaysConnectionList;
         DisplaysConnectionList = [false, false, false, false, false, false];
         protectedConnectionList = [false, false, false, false, false, false];
         chatSocket.send(JSON.stringify({'command': 'get_connected_displays'}));
     }
-    else if (timer == 7) {
+    else if (timer == 4) {
         hideLoaders();
         if (DisplaysConnectionList[0] && protectedConnectionList[0]) { document.querySelector('#display-1').style.backgroundColor = "green"; }
         else if (DisplaysConnectionList[0]) { document.querySelector('#display-1').style.backgroundColor = "orange"; }
