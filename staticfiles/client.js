@@ -68,7 +68,7 @@ var countdown = setInterval(function() {
 }, 1000)
 
 chatSocket.onopen = function(e) {
-    document.getElementById('mainContainer').style.display = "block";
+    document.getElementById('mainContainer').style.display = "flex";
     document.getElementById('offlineContainer').style.display = "none";
     update();
     setTimeout(IsStillOnline, 10000);
@@ -82,18 +82,16 @@ function playSound() {
 chatSocket.onmessage = function(e) {
     var data = JSON.parse(e.data);
     if (data['type'] === 'UpdateLocation') {
+        if (_playSound == "True" && document.getElementById('current-text').innerHTML != data['current']) { playSound(); }
         document.getElementById('current-text').innerHTML = data['current'];
         document.getElementById('next-text').innerHTML = data['next'];
         document.getElementById('after-text').innerHTML = data['after'];
         Est_Time_Seconds = 0;
         Est_Set = true;
         Est_Time = data['est'];
-        if (_playSound == true) {
-            playSound();
-        }
     } else if (data['type'] === 'connectedDisplays') {
         chatSocket.send(JSON.stringify({'command': 'set_connected_display', 'display': DisplayNumb, 'is_protected': isInFullscreen}));
-        document.getElementById('mainContainer').style.display = "block";
+        document.getElementById('mainContainer').style.display = "flex";
         document.getElementById('offlineContainer').style.display = "none";
         HasGottenANewUpdate = true;
     } else if (data['type'] === 'rfid_auth') {
@@ -156,11 +154,14 @@ document.getElementById('AdminControl-Reload').onclick  = function(e) { location
 
 function IsStillOnline() {
     if (HasGottenANewUpdate) {
+        console.log("Online");
         HasGottenANewUpdate = false;
-        document.getElementById('mainContainer').style.display = "block";
+        document.getElementById('mainContainer').style.display = "flex";
         document.getElementById('offlineContainer').style.display = "none";
     } else {
+        console.log("Offline");
         document.getElementById('mainContainer').style.display = "none";
+        console.log(document.getElementById('mainContainer').style.display)
         document.getElementById('offlineContainer').style.display = "block";
     }
     setTimeout(IsStillOnline, 10000);
