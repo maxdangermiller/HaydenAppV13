@@ -92,13 +92,10 @@ CHANNEL_LAYERS = {
 }
 CACHES = {
     "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": os.environ.get('REDIS_URL', 'redis://localhost:6379'),
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": os.environ.get('REDIS_URL'),
         "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            'CONNECTION_POOL_KWARGS': {
-                'ssl_cert_reqs': None  # Disables SSL verification
-            }
+            "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": None},
         }
     }
 }
