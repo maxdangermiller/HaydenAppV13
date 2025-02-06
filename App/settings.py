@@ -83,7 +83,7 @@ WSGI_APPLICATION = 'App.wsgi.application'
 ASGI_APPLICATION = "App.asgi.application"
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'BACKEND': 'asgi_redis.RedisChannelLayer',
         'CONFIG': {
             "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],  # ('127.0.0.1', 6379),
         },
