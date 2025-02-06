@@ -48,13 +48,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 INSTALLED_APPS = [
     'daphne',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'channels',
     'crispy_forms',
     'crispy_bootstrap4',
 
@@ -96,25 +96,32 @@ TEMPLATES = [
 WSGI_APPLICATION = 'App.wsgi.application'
 ASGI_APPLICATION = "App.routing.application"
 
+"""
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
-            "ssl_cert_reqs": None,
         },
     },
 }
-
+"""
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    },
+}
+"""
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": os.environ.get('REDIS_URL'),
         "OPTIONS": {
-                "ssl_cert_reqs": None
+            "ssl_cert_reqs": None
         }
     }
 }
+"""
 
 
 # Database
