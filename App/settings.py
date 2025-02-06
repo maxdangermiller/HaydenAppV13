@@ -81,7 +81,7 @@ TEMPLATES = [
 # AUTH_USER_MODEL = 'account.Account'
 
 WSGI_APPLICATION = 'App.wsgi.application'
-ASGI_APPLICATION = "App.asgi.application"
+ASGI_APPLICATION = "App.routing.application"
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
