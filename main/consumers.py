@@ -19,6 +19,9 @@ class ChatConsumer(WebsocketConsumer):
             Mapping.clear()
             for word in sceneList.sceneList.split(","):
                 Mapping.append(word)
+            
+            Mapping.append("")
+            Mapping.append("")
         except IndexError:
             Mapping = ["", "", ""]
 
@@ -27,12 +30,15 @@ class ChatConsumer(WebsocketConsumer):
         if not Simple:
             if len(Mapping) > index:
                 _current = Mapping[index]
+                
                 try:
                     _est = Est_Times[index]
                 except IndexError:
                     _est = -1
+                
                 if len(Mapping) > index + 1:
                     _next = Mapping[index + 1]
+
                     if len(Mapping) > index + 2:
                         _after = Mapping[index + 2]
                     else:
@@ -75,7 +81,7 @@ class ChatConsumer(WebsocketConsumer):
         )
 
     def get_length_of_list(self, message):
-        self.send(text_data=json.dumps({"type": "get_length_of_list", "value": len(Mapping) - 2}))
+        self.send(text_data=json.dumps({"type": "get_length_of_list", "value": len(Mapping)}))
 
     def ask_admin_for_current_increment(self, message):
         async_to_sync(self.channel_layer.group_send)(

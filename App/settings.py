@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import os
 from pathlib import Path
 
+# CHANGE UPON DEPLOYMENT
+ENABLE_REMOTE_DATABASE = False
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,13 +34,14 @@ ALLOWED_HOSTS = ['hayden-auditorium.herokuapp.com', '127.0.0.1', '0.0.0.0']
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    # 'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'channels',
     'crispy_forms',
 
     'main',
@@ -76,7 +80,7 @@ TEMPLATES = [
 # AUTH_USER_MODEL = 'account.Account'
 
 WSGI_APPLICATION = 'App.wsgi.application'
-ASGI_APPLICATION = "App.routing.application"
+ASGI_APPLICATION = "App.asgi.application"
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
@@ -87,7 +91,7 @@ CHANNEL_LAYERS = {
 }
 CACHES = {
     "default": {
-        "BACKEND": "django_redis_cache.RedisCache",
+        "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient"
@@ -98,26 +102,27 @@ CACHES = {
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-"""
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if (ENABLE_REMOTE_DATABASE):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'd3kc1g2nigong8',
+            'HOST': 'ec2-54-156-53-71.compute-1.amazonaws.com',
+            'PORT': '5432',
+            'USER': 'harmlztutjwlby',
+            'PASSWORD': '6eacd160c05b48e1f0206c6afe5b191e7b7af48e59d179c0ee8ad81bf3acd050'
+            
+        }
     }
-}
-"""
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'd3kc1g2nigong8',
-        'HOST': 'ec2-54-156-53-71.compute-1.amazonaws.com',
-        'PORT': '5432',
-        'USER': 'harmlztutjwlby',
-        'PASSWORD': '6eacd160c05b48e1f0206c6afe5b191e7b7af48e59d179c0ee8ad81bf3acd050'
-        
-    }
-}
+
 
 
 # Password validation

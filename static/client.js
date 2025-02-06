@@ -34,8 +34,15 @@ document.getElementById('FullScreenBtn').onclick = function(e) {
     $("#FullScreen").modal("hide");
 };
 
+var chatSocket;
 
-var chatSocket = new ReconnectingWebSocket('wss://' + window.location.host + '/ws/main/');
+if (window.location.host === "127.0.0.1:8000") {
+    chatSocket = new ReconnectingWebSocket('ws://' + window.location.host + '/ws/main/');
+
+} else {
+
+    chatSocket = new ReconnectingWebSocket('wss://' + window.location.host + '/ws/main/');
+}
 
 document.addEventListener('fullscreenchange', (event) => {
   if (document.fullscreenElement) {

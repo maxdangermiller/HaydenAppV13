@@ -9,7 +9,16 @@ var protectedConnectionList = [false, false, false, false, false, false];
 var timer = 2;
 var EditingNumber = 0;
 
-var chatSocket = new WebSocket('wss://' + window.location.host + '/ws/main/');
+var chatSocket
+
+if (window.location.host === "127.0.0.1:8000") {
+    console.log(window.location.host)
+    chatSocket = new ReconnectingWebSocket('ws://' + window.location.host + '/ws/main/');
+
+} else {
+
+    chatSocket = new ReconnectingWebSocket('wss://' + window.location.host + '/ws/main/');
+}
 
 function showProblem(errorText) {
     $("#ProblemDialogue").modal("show");
