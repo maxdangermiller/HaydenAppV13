@@ -36,13 +36,13 @@ CSRF_TRUSTED_ORIGINS=['https://hayden-auditorium-e3afc22a8271.herokuapp.com', 'h
 
 INSTALLED_APPS = [
     'daphne',
-    # 'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'crispy_forms',
 
     'main',
@@ -84,7 +84,7 @@ WSGI_APPLICATION = 'App.wsgi.application'
 ASGI_APPLICATION = "App.asgi.application"
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'asgi_redis.RedisChannelLayer',
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
             "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],  # ('127.0.0.1', 6379),
         },
