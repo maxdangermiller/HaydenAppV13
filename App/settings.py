@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'ap*z1i+bk@wv-1_^m4c)7nsazm$du49@umno8u4!=6^nl_$2-x'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['hayden-auditorium-e3afc22a8271.herokuapp.com', '127.0.0.1', '0.0.0.0']
 
@@ -106,11 +106,11 @@ if (ENABLE_REMOTE_DATABASE):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'd3kc1g2nigong8',
-            'HOST': 'ec2-54-156-53-71.compute-1.amazonaws.com',
+            'NAME': 'd2f25ehvlp9bvc',
+            'HOST': 'cbdhrtd93854d5.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',
             'PORT': '5432',
-            'USER': 'harmlztutjwlby',
-            'PASSWORD': '6eacd160c05b48e1f0206c6afe5b191e7b7af48e59d179c0ee8ad81bf3acd050'
+            'USER': 'uaosd0i3mjlfin',
+            'PASSWORD': 'p101ba89b9523ea706189dc8d0b56d0950aef9cfee33f817af49ce060a92600bc'
             
         }
     }
