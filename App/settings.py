@@ -28,7 +28,7 @@ SECRET_KEY = 'ap*z1i+bk@wv-1_^m4c)7nsazm$du49@umno8u4!=6^nl_$2-x'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['hayden-auditorium.herokuapp.com', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = ['hayden-auditorium-e3afc22a8271.herokuapp.com', '127.0.0.1', '0.0.0.0']
 
 
 # Application definition
