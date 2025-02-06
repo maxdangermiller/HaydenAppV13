@@ -127,6 +127,7 @@ function update() { chatSocket.send(JSON.stringify({'command': 'ask_admin_for_cu
       keynum = event.which;
     }
 
+    // Is "C" key pressed? If so open up auth prompt
     if (keynum == 67 && !CurrentlyEnteringAdminCode) {
         AdminCurrentCode = [];
         convertCode(AdminCurrentCode);
