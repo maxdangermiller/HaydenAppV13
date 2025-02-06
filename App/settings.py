@@ -28,8 +28,19 @@ SECRET_KEY = 'ap*z1i+bk@wv-1_^m4c)7nsazm$du49@umno8u4!=6^nl_$2-x'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['hayden-auditorium-e3afc22a8271.herokuapp.com', '127.0.0.1', '0.0.0.0']
-CSRF_TRUSTED_ORIGINS=['https://hayden-auditorium-e3afc22a8271.herokuapp.com', 'https://www.hayden-auditorium-e3afc22a8271.herokuapp.com']
+ALLOWED_HOSTS = [
+    'hayden-auditorium-e3afc22a8271.herokuapp.com', 
+    '127.0.0.1', 
+    '0.0.0.0',
+    os.environ.get('REDIS_URL'),
+    os.environ.get('DATABASE_URL'),
+]
+CSRF_TRUSTED_ORIGINS=[
+    'https://hayden-auditorium-e3afc22a8271.herokuapp.com', 
+    'https://www.hayden-auditorium-e3afc22a8271.herokuapp.com',
+    os.environ.get('REDIS_URL'),
+    os.environ.get('DATABASE_URL'),
+]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
