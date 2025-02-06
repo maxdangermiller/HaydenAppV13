@@ -1,0 +1,93 @@
+Exception inside application: Error Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 6379), [Errno 61] Connect call failed ('::1', 6379, 0, 0) connecting to localhost:6379.
+Traceback (most recent call last):
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/redis/asyncio/connection.py", line 281, in connect
+    await self.retry.call_with_retry(
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/redis/asyncio/retry.py", line 59, in call_with_retry
+    return await do()
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/redis/asyncio/connection.py", line 697, in _connect
+    reader, writer = await asyncio.open_connection(
+  File "/opt/homebrew/Cellar/python@3.10/3.10.14_1/Frameworks/Python.framework/Versions/3.10/lib/python3.10/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+  File "/opt/homebrew/Cellar/python@3.10/3.10.14_1/Frameworks/Python.framework/Versions/3.10/lib/python3.10/asyncio/base_events.py", line 1084, in create_connection
+    raise OSError('Multiple exceptions: {}'.format(
+OSError: Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 6379), [Errno 61] Connect call failed ('::1', 6379, 0, 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels/utils.py", line 50, in await_many_dispatch
+    await dispatch(result)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/asgiref/sync.py", line 468, in __call__
+    ret = await asyncio.shield(exec_coro)
+  File "/opt/homebrew/Cellar/python@3.10/3.10.14_1/Frameworks/Python.framework/Versions/3.10/lib/python3.10/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels/db.py", line 13, in thread_handler
+    return super().thread_handler(loop, *args, **kwargs)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/asgiref/sync.py", line 522, in thread_handler
+    return func(*args, **kwargs)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels/consumer.py", line 126, in dispatch
+    handler(message)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels/generic/websocket.py", line 39, in websocket_connect
+    self.connect()
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/main/consumers.py", line 192, in connect
+    async_to_sync(self.channel_layer.group_add)("main", self.channel_name)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/asgiref/sync.py", line 254, in __call__
+    return call_result.result()
+  File "/opt/homebrew/Cellar/python@3.10/3.10.14_1/Frameworks/Python.framework/Versions/3.10/lib/python3.10/concurrent/futures/_base.py", line 451, in result
+    return self.__get_result()
+  File "/opt/homebrew/Cellar/python@3.10/3.10.14_1/Frameworks/Python.framework/Versions/3.10/lib/python3.10/concurrent/futures/_base.py", line 403, in __get_result
+    raise self._exception
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/asgiref/sync.py", line 331, in main_wrap
+    result = await self.awaitable(*args, **kwargs)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels_redis/core.py", line 491, in group_add
+    await connection.zadd(group_key, {channel: time.time()})
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/redis/asyncio/client.py", line 611, in execute_command
+    conn = self.connection or await pool.get_connection(command_name, **options)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/redis/asyncio/connection.py", line 1064, in get_connection
+    await self.ensure_connection(connection)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/redis/asyncio/connection.py", line 1097, in ensure_connection
+    await connection.connect()
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/redis/asyncio/connection.py", line 289, in connect
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 6379), [Errno 61] Connect call failed ('::1', 6379, 0, 0) connecting to localhost:6379.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/django/contrib/staticfiles/handlers.py", line 101, in __call__
+    return await self.application(scope, receive, send)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels/routing.py", line 48, in __call__
+    return await application(scope, receive, send)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels/security/websocket.py", line 37, in __call__
+    return await self.application(scope, receive, send)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels/sessions.py", line 44, in __call__
+    return await self.inner(dict(scope, cookies=cookies), receive, send)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels/sessions.py", line 261, in __call__
+    return await self.inner(wrapper.scope, receive, wrapper.send)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels/auth.py", line 185, in __call__
+    return await super().__call__(scope, receive, send)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels/middleware.py", line 24, in __call__
+    return await self.inner(scope, receive, send)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels/routing.py", line 118, in __call__
+    return await application(
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels/consumer.py", line 95, in app
+    return await consumer(scope, receive, send)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels/consumer.py", line 58, in __call__
+    await await_many_dispatch(
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels/utils.py", line 57, in await_many_dispatch
+    await task
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels_redis/core.py", line 340, in receive
+    message_channel, message = await self.receive_single(
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels_redis/core.py", line 395, in receive_single
+    content = await self._brpop_with_clean(
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/channels_redis/core.py", line 231, in _brpop_with_clean
+    await connection.eval(cleanup_script, 0, channel, backup_queue)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/redis/asyncio/client.py", line 611, in execute_command
+    conn = self.connection or await pool.get_connection(command_name, **options)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/redis/asyncio/connection.py", line 1064, in get_connection
+    await self.ensure_connection(connection)
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/redis/asyncio/connection.py", line 1097, in ensure_connection
+    await connection.connect()
+  File "/Users/maxmiller/Desktop/Programming/HaydenAuditoriumV13/.venv/lib/python3.10/site-packages/redis/asyncio/connection.py", line 289, in connect
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 6379), [Errno 61] Connect call failed ('::1', 6379, 0, 0) connecting to localhost:6379.

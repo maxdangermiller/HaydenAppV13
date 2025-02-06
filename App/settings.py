@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 
 # CHANGE UPON DEPLOYMENT
-ENABLE_REMOTE_DATABASE = True
+ENABLE_REMOTE_DATABASE = False
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,6 +31,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['hayden-auditorium-e3afc22a8271.herokuapp.com', '127.0.0.1', '0.0.0.0']
 CSRF_TRUSTED_ORIGINS=['https://hayden-auditorium-e3afc22a8271.herokuapp.com', 'https://www.hayden-auditorium-e3afc22a8271.herokuapp.com']
 
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Application definition
 
@@ -81,7 +82,7 @@ TEMPLATES = [
 # AUTH_USER_MODEL = 'account.Account'
 
 WSGI_APPLICATION = 'App.wsgi.application'
-ASGI_APPLICATION = "App.asgi.application"
+ASGI_APPLICATION = "App.routing.application"
 
 CHANNEL_LAYERS = {
     "default": {
