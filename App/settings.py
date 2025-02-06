@@ -29,7 +29,7 @@ SECRET_KEY = 'ap*z1i+bk@wv-1_^m4c)7nsazm$du49@umno8u4!=6^nl_$2-x'
 DEBUG = False
 
 ALLOWED_HOSTS = ['hayden-auditorium-e3afc22a8271.herokuapp.com', '127.0.0.1', '0.0.0.0']
-CSRF_TRUSTED_ORIGINS=['hayden-auditorium-e3afc22a8271.herokuapp.com', '127.0.0.1', '0.0.0.0']
+CSRF_TRUSTED_ORIGINS=['https://hayden-auditorium-e3afc22a8271.herokuapp.com']
 
 
 # Application definition
