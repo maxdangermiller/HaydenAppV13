@@ -119,14 +119,14 @@ function get_length_of_list() { chatSocket.send(JSON.stringify({'command': 'get_
 function update() { chatSocket.send(JSON.stringify({'command': 'ask_admin_for_current_increment'})); }
 
 var timerInterval = setInterval(function() {
-    if (timer == 2){
+    if (timer == 5){
         showLoaders();
         LastDisplaysConnectionList = DisplaysConnectionList;
         DisplaysConnectionList = [false, false, false, false, false, false];
         protectedConnectionList = [false, false, false, false, false, false];
         chatSocket.send(JSON.stringify({'command': 'get_connected_displays'}));
     }
-    else if (timer == 4) {
+    else if (timer == 10) {
         hideLoaders();
         if (DisplaysConnectionList[0] && protectedConnectionList[0]) { document.querySelector('#display-1').style.backgroundColor = "green"; }
         else if (DisplaysConnectionList[0]) { document.querySelector('#display-1').style.backgroundColor = "orange"; }
