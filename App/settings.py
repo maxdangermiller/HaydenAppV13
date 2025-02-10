@@ -29,14 +29,13 @@ SECRET_KEY = 'ap*z1i+bk@wv-1_^m4c)7nsazm$du49@umno8u4!=6^nl_$2-x'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-"""
 if IS_HEROKU_APP:
     ALLOWED_HOSTS = ["*"]
-    SECURE_SSL_REDIRECT = True
+    # SECURE_SSL_REDIRECT = True
 else:
     ALLOWED_HOSTS = [".localhost", "127.0.0.1", "[::1]", "0.0.0.0", "[::]"]
-"""
 
+"""
 ALLOWED_HOSTS = [
     'hayden-auditorium-e3afc22a8271.herokuapp.com', 
     '127.0.0.1', 
@@ -50,6 +49,7 @@ CSRF_TRUSTED_ORIGINS=[
     os.environ.get('REDIS_URL'),
     os.environ.get('DATABASE_URL'),
 ]
+"""
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
