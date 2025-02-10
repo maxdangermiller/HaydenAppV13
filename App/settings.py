@@ -36,12 +36,14 @@ else:
     ALLOWED_HOSTS = [".localhost", "127.0.0.1", "[::1]", "0.0.0.0", "[::]"]
 
 
+"""
 CSRF_TRUSTED_ORIGINS=[
     'https://hayden-auditorium-e3afc22a8271.herokuapp.com', 
     'https://www.hayden-auditorium-e3afc22a8271.herokuapp.com',
     os.environ.get('REDIS_URL'),
     os.environ.get('DATABASE_URL'),
 ]
+"""
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
