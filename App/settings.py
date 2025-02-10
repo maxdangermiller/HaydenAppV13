@@ -11,9 +11,10 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 import os
 from pathlib import Path
+import dj_database_url
 
-# CHANGE UPON DEPLOYMENT
-ENABLE_REMOTE_DATABASE = True
+
+IS_HEROKU_APP = "DYNO" in os.environ and "CI" not in os.environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,13 +29,13 @@ SECRET_KEY = 'ap*z1i+bk@wv-1_^m4c)7nsazm$du49@umno8u4!=6^nl_$2-x'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    'hayden-auditorium-e3afc22a8271.herokuapp.com', 
-    '127.0.0.1', 
-    '0.0.0.0',
-    os.environ.get('REDIS_URL'),
-    os.environ.get('DATABASE_URL'),
-]
+if IS_HEROKU_APP:
+    ALLOWED_HOSTS = ["*"]
+    SECURE_SSL_REDIRECT = True
+else:
+    ALLOWED_HOSTS = [".localhost", "127.0.0.1", "[::1]", "0.0.0.0", "[::]"]
+
+
 CSRF_TRUSTED_ORIGINS=[
     'https://hayden-auditorium-e3afc22a8271.herokuapp.com', 
     'https://www.hayden-auditorium-e3afc22a8271.herokuapp.com',
@@ -126,17 +127,14 @@ CACHES = {
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-if (ENABLE_REMOTE_DATABASE):
+if (IS_HEROKU_APP):
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'd2f25ehvlp9bvc',
-            'HOST': 'cbdhrtd93854d5.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',
-            'PORT': '5432',
-            'USER': 'uaosd0i3mjlfin',
-            'PASSWORD': 'p101ba89b9523ea706189dc8d0b56d0950aef9cfee33f817af49ce060a92600bc'
-            
-        }
+        "default": dj_database_url.config(
+            env="DATABASE_URL",
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True,
+        ),
     }
 else:
     DATABASES = {
