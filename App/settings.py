@@ -34,8 +34,8 @@ if IS_HEROKU_APP:
     # SECURE_SSL_REDIRECT = True
 
     CSRF_TRUSTED_ORIGINS=[
-        'https://hayden-auditorium-e3afc22a8271.herokuapp.com', 
-        'https://www.hayden-auditorium-e3afc22a8271.herokuapp.com',
+        'https://hayden-auditorium-6e685cbf9b56.herokuapp.com', 
+        'https://www.hayden-auditorium-6e685cbf9b56.herokuapp.com',
         os.environ.get('REDIS_URL'),
         os.environ.get('DATABASE_URL'),
     ]
@@ -44,7 +44,7 @@ else:
 
 """
 ALLOWED_HOSTS = [
-    'hayden-auditorium-e3afc22a8271.herokuapp.com', 
+    'hayden-auditorium-6e685cbf9b56.herokuapp.com', 
     '127.0.0.1', 
     '0.0.0.0',
     os.environ.get('REDIS_URL'),
