@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 {% load static %}
 {% load DisplayConfigFilters %}
 <head>
@@ -14,6 +14,8 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
     <title>Hayden Auditorium</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'icon.png' %}" >
+
 
     <style>
         .block {
@@ -21,8 +23,14 @@
             width: 100%;
             height: 100%
         }
+
+        .time-record-switch-div {
+            user-select: none;
+        }
     </style>
 </head>
+
+
 <body style="background-color:grey;">
     <div class="float-right" id="main">
         <div class="d-flex align-items-center justify-content-center" style="height: 100vh">
@@ -134,6 +142,12 @@
                 <input id="backward" type="button" value="Backward" class="btn btn-dark btn-lg">
                 <input id="forward" type="button" value="Forward" class="btn btn-dark btn-lg">
             </div>
+            <div class="p-2">
+                <div class="custom-control custom-switch time-record-switch-div">
+                    <input type="checkbox" class="custom-control-input" id="time-record-switch">
+                    <label class="custom-control-label" for="time-record-switch">Enable Time Recording</label>
+                </div>
+            </div>
         </div>
     </div>
     <div class="modal fade" id="EditDisplay" tabindex="-1" role="dialog" aria-labelledby="EditDisplayLabel" aria-hidden="true">
@@ -160,7 +174,7 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="ProblemDialogue" tabindex="-1" role="dialog" aria-labelledby="EditDisplayLabel" aria-hidden="true">
+    <div class="modal fade" id="ProblemDialogue" tabindex="-1" role="dialog" aria-labelledby="ProblemLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -178,22 +192,42 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="SaveTimeDialogue" tabindex="-1" role="dialog" aria-labelledby="SaveTimeLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="SaveTimeLabel">Save Time</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h5>Do you want to save the recorded time for this entry?</h5>
+                    <h5 id="SaveTimeDialogueText"></h5>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" id="SaveTimeButton">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 <script src="{% static 'reconnecting-websocket.js' %}"></script>
 <script>
-    var configName1 = "{{config.display_one_name}}";
-    var configSound1 = "{{config.display_one_play_sound}}";
-    var configName2 = "{{config.display_two_name}}";
-    var configSound2 = "{{config.display_two_play_sound}}";
-    var configName3 = "{{config.display_three_name}}";
-    var configSound3 = "{{config.display_three_play_sound}}";
-    var configName4 = "{{config.display_four_name}}";
-    var configSound4 = "{{config.display_four_play_sound}}";
-    var configName5 = "{{config.display_five_name}}";
-    var configSound5 = "{{config.display_five_play_sound}}";
-    var configName6 = "{{config.display_six_name}}";
-    var configSound6 = "{{config.display_six_play_sound}}";
+    window.configs = [];
+
+
+    {% if configs %}
+        {% for config in configs %}
+            window.configs.push({
+                name: "{{ config.name }}",
+                play_sound: {{ config.play_sound|yesno:"true,false" }},
+                display_number: {{ config.display_number }}
+            });
+        {% endfor %}
+    {% endif %}
 </script>
 <script src="{% static 'host.js' %}"></script>
 

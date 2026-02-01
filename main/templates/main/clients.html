@@ -38,12 +38,12 @@
 
 <script>
 
-    document.querySelector('#btn-1').value = "{{config.display_one_name}}";
-    document.querySelector('#btn-2').value = "{{config.display_two_name}}";
-    document.querySelector('#btn-3').value = "{{config.display_three_name}}";
-    document.querySelector('#btn-4').value = "{{config.display_four_name}}";
-    document.querySelector('#btn-5').value = "{{config.display_five_name}}";
-    document.querySelector('#btn-6').value = "{{config.display_six_name}}";
+    document.querySelector('#btn-1').value = "{{configs.0.name}}";
+    document.querySelector('#btn-2').value = "{{configs.1.name}}";
+    document.querySelector('#btn-3').value = "{{configs.2.name}}";
+    document.querySelector('#btn-4').value = "{{configs.3.name}}";
+    document.querySelector('#btn-5').value = "{{configs.4.name}}";
+    document.querySelector('#btn-6').value = "{{configs.5.name}}";
 
     document.querySelector('#btn-1').onclick = function(e) { window.location.pathname = 'client/1/'; };
     document.querySelector('#btn-2').onclick = function(e) { window.location.pathname = 'client/2/'; };

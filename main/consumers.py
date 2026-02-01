@@ -4,72 +4,91 @@ from channels.generic.websocket import WebsocketConsumer
 from .models import *
 
 
-Mapping = list(["hello", "World", "I", "Like", "Bananas", "", ""])
-Est_Times = list([])
+scene_names = list([])
+scene_est_times = list([])
 
 # Prologue, Belle, Belle Playoff
 
 
 class ChatConsumer(WebsocketConsumer):
+    """
+    ChatConsumer: WebSocket consumer for managing real-time communication in the Hayden Auditorium system.
+    This consumer handles WebSocket connections and manages scene information, display configurations,
+    RFID authentication, and tamper alerts across connected displays.
+    Attributes:
+        commands (dict): Mapping of command names to their corresponding handler methods.
+        scene_names (list): Global list of scene names ordered by index.
+        scene_est_times (list): Global list of estimated times for each scene.
+    Methods:
+        connect(): Establishes WebSocket connection, joins the "main" group, and loads scene list.
+        disconnect(code): Closes WebSocket connection and removes client from the "main" group.
+        receive(text_data, bytes_data): Parses incoming JSON data and routes to appropriate command handler.
+        admin_send_update_message(data): Sends current, next, and after scene information to all clients.
+        new_message(message): Broadcasts scene location update to all connected clients.
+        get_length_of_list(message): Returns the total number of scenes to the requesting client.
+        ask_admin_for_current_increment(message): Requests admin to increment the current scene.
+        get_list(message): Sends the complete scene list to the requesting client.
+        get_connected_displays(message): Broadcasts a request to report connected displays.
+        set_connected_display(message): Updates connected display status across all clients.
+        updateDisplayModel(message): Creates or updates display configuration records in the database.
+        rfid_auth(message): Authenticates RFID data and responds with success status.
+        send_tamper_alert(message): Broadcasts a tamper alert for a specific display.
+        UpdateLocation(event): WebSocket event handler that sends scene location updates to client.
+        adminCurrentIncrement(event): WebSocket event handler requesting admin increment.
+        connectedDisplays(event): WebSocket event handler for connected displays query.
+        connectedDisplay(event): WebSocket event handler for individual display connection status.
+        tamperAlert(event): WebSocket event handler for tamper alert broadcasts.
+        updateSceneList(): Refreshes the global scene list from the database, padding with empty entries.
+    """
 
     def admin_send_update_message(self, data):
-        global Mapping
-        try:
-            sceneList = SceneList.objects.all()[0]
-            Mapping.clear()
-            for word in sceneList.sceneList.split(","):
-                Mapping.append(word)
-            
-            Mapping.append("")
-            Mapping.append("")
-        except IndexError:
-            Mapping = ["", "", ""]
+        """
+        Sends an update message to the "main" channel group with information about the current, next, and after scenes,
+        as well as the estimated time for the current scene.
+        Args:
+            data (dict): A dictionary containing at least the "index" key, which specifies the current scene index.
+        Side Effects:
+            - Calls self.updateSceneList() to refresh the scene list.
+            - Sends a message to the "main" channel group with the following keys:
+                - 'current': Name of the current scene (str).
+                - 'next': Name of the next scene (str).
+                - 'after': Name of the scene after next (str).
+                - 'est': Estimated time for the current scene (int, -1 if unavailable).
+        Notes:
+            - If the index is out of bounds, empty strings and -1 are sent for the scene names and estimated time.
+            - Uses async_to_sync to send the message synchronously.
+        """
+        global scene_names
+        self.updateSceneList()
 
         index = int(data["index"])
-        Simple = True
-        if not Simple:
-            if len(Mapping) > index:
-                _current = Mapping[index]
-                
-                try:
-                    _est = Est_Times[index]
-                except IndexError:
-                    _est = -1
-                
-                if len(Mapping) > index + 1:
-                    _next = Mapping[index + 1]
 
-                    if len(Mapping) > index + 2:
-                        _after = Mapping[index + 2]
-                    else:
-                        _after = ""
-                else:
-                    _next = ""
-                    _after = ""
-            else:
-                _current = ""
-                _next = ""
-                _after = ""
-                _est = -1
-        else:
-            if len(Mapping) > index:
-                _current = Mapping[index]
-                _next = Mapping[index + 1]
-                _after = Mapping[index + 2]
-                try:
-                    _est = Est_Times[index]
-                except IndexError:
-                    _est = -1
-            else:
-                _current = ""
-                _next = ""
-                _after = ""
-                _est = -1
+        # Current
+        try:
+            _current = scene_names[index]
+            _est = scene_est_times[index]
+        except IndexError:
+            _current = ""
+            _est = -1
+
+        # Next
+        try:
+            _next = scene_names[index + 1]
+        except IndexError:
+            _next = ""
+
+        # After
+        try:
+            _after = scene_names[index + 2]
+        except IndexError:
+            _after = ""
+        
         async_to_sync(self.channel_layer.group_send)(
             "main",
             {'type': 'UpdateLocation', 'current': _current, 'next': _next, 'after': _after, 'est': _est},
         )
 
+    
     def new_message(self, message):
         _current = message['current']
         _next = message['next']
@@ -80,8 +99,10 @@ class ChatConsumer(WebsocketConsumer):
             {'type': 'UpdateLocation', 'current': _current, 'next': _next, 'after': _after},
         )
 
+
     def get_length_of_list(self, message):
-        self.send(text_data=json.dumps({"type": "get_length_of_list", "value": len(Mapping)}))
+        self.send(text_data=json.dumps({"type": "get_length_of_list", "value": len(scene_names) - 2}))
+
 
     def ask_admin_for_current_increment(self, message):
         async_to_sync(self.channel_layer.group_send)(
@@ -89,11 +110,13 @@ class ChatConsumer(WebsocketConsumer):
             {'type': 'adminCurrentIncrement'},
         )
 
+
     def get_list(self, message):
         self.send(text_data=json.dumps({
             'type': 'get_list',
-            'data': Mapping,
+            'data': scene_names,
         }))
+
 
     def get_connected_displays(self, message):
         async_to_sync(self.channel_layer.group_send)(
@@ -101,47 +124,34 @@ class ChatConsumer(WebsocketConsumer):
             {'type': 'connectedDisplays'},
         )
 
+
     def set_connected_display(self, message):
         async_to_sync(self.channel_layer.group_send)(
             "main",
             {'type': 'connectedDisplay', 'display': message['display'], 'is_protected': message['is_protected']},
         )
 
+
     def updateDisplayModel(self, message):
-        configName1 = message['configName1']
-        configSound1 = message['configSound1']
-        configName2 = message['configName2']
-        configSound2 = message['configSound2']
-        configName3 = message['configName3']
-        configSound3 = message['configSound3']
-        configName4 = message['configName4']
-        configSound4 = message['configSound4']
-        configName5 = message['configName5']
-        configSound5 = message['configSound5']
-        configName6 = message['configName6']
-        configSound6 = message['configSound6']
+        configs = json.loads(message['configs'])
+        
+        for config in configs:
+            try:
+                existingConfig = NewDisplayConfig.objects.get(display_number = config['display_number'])
+                existingConfig.name = config['name']
+                existingConfig.play_sound = config['play_sound']
+                existingConfig.save()
+            except NewDisplayConfig.DoesNotExist:
+                newConfig = NewDisplayConfig(
+                    name=config['name'],
+                    play_sound=config['play_sound'],
+                    display_number=config['display_number']
+                )
+                newConfig.save()
 
-        config = DisplayConfig.objects.all()[0]
-        config.display_one_name = configName1
-        config.display_one_play_sound = configSound1
-
-        config.display_two_name = configName2
-        config.display_two_play_sound = configSound2
-
-        config.display_three_name = configName3
-        config.display_three_play_sound = configSound3
-
-        config.display_four_name = configName4
-        config.display_four_play_sound = configSound4
-
-        config.display_five_name = configName5
-        config.display_five_play_sound = configSound5
-
-        config.display_six_name = configName6
-        config.display_six_play_sound = configSound6
-
-        config.save()
+        
         print("Saved Config!")
+
 
     def rfid_auth(self, message):
         try:
@@ -162,11 +172,31 @@ class ChatConsumer(WebsocketConsumer):
                 'success': False,
             }))
 
+
     def send_tamper_alert(self, message):
         async_to_sync(self.channel_layer.group_send)(
             "main",
             {'type': 'tamperAlert', 'display': message['display']},
         )
+    
+
+    def update_scene_time(self, message):
+        scene_index = message['scene_index']
+        new_time = message['new_time']
+
+        try:
+            scene = Scene.objects.get(index=scene_index)
+            scene.est_time = new_time
+            scene.save()
+
+            # Update the global list
+            global scene_est_times
+            scene_est_times[scene_index] = new_time
+
+            print(f"Updated scene {scene_index} estimated time to {new_time} seconds.")
+        except Scene.DoesNotExist:
+            print(f"Scene with index {scene_index} does not exist. Cannot update estimated time.")
+
 
     commands = {
         'admin_send_update_message': admin_send_update_message,
@@ -179,25 +209,25 @@ class ChatConsumer(WebsocketConsumer):
         'updateDisplayModel': updateDisplayModel,
         'rfid_auth': rfid_auth,
         'send_tamper_alert': send_tamper_alert,
+        'update_scene_time': update_scene_time
     }
 
-    def connect(self):
-        global Mapping
 
-        sceneList = SceneList.objects.all()[0]
-        Mapping.clear()
-        for word in sceneList.sceneList.split(","):
-            Mapping.append(word)
+    def connect(self):
+        self.updateSceneList()
         
         async_to_sync(self.channel_layer.group_add)("main", self.channel_name)
         self.accept()
 
-    def disconnect(self, close_code):
+
+    def disconnect(self, code):
         async_to_sync(self.channel_layer.group_discard)("main", self.channel_name)
 
-    def receive(self, text_data):
+
+    def receive(self, text_data:str, bytes_data=None): # type: ignore
         text_data_json = json.loads(text_data)
         self.commands[text_data_json['command']](self, text_data_json)
+
 
     def UpdateLocation(self, event):
         _current = event['current']
@@ -209,14 +239,45 @@ class ChatConsumer(WebsocketConsumer):
         # print(json.dumps({'current': _current, 'next': _next, 'after': _after}))
         self.send(text_data=json.dumps({'type': 'UpdateLocation', 'current': _current, 'next': _next, 'after': _after, 'est': _est}))
 
+
     def adminCurrentIncrement(self, event):
         self.send(text_data=json.dumps({'type': 'ask_admin_for_current_increment'}))
+
 
     def connectedDisplays(self, event):
         self.send(text_data=json.dumps({'type': 'connectedDisplays'}))
 
+
     def connectedDisplay(self, event):
         self.send(text_data=json.dumps({'type': 'connectedDisplay', 'display': event['display'], 'is_protected': event['is_protected']}))
 
+
     def tamperAlert(self, event):
         self.send(text_data=json.dumps({'type': 'tamperAlert', 'display': event['display']}))
+
+    
+    def updateSceneList(self):
+        global scene_names, scene_est_times
+        try:
+            sceneList = Scene.objects.all().order_by('index')
+
+            scene_names.clear()
+            scene_est_times.clear()
+            
+            for scene in sceneList:
+                scene_names.append(scene.name)
+                scene_est_times.append(scene.est_time)
+            
+            # Pad the list to avoid index errors
+            scene_names.append("")
+            scene_names.append("")
+            scene_est_times.append(-1)
+            scene_est_times.append(-1)
+
+            return list(sceneList)
+
+
+        except IndexError:
+            scene_names = ["", "", ""]
+    
+        return None

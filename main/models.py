@@ -1,28 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import User
+    
 
-
-class DisplayConfig(models.Model):
-    display_one_name = models.CharField(max_length=50)
-    display_one_play_sound = models.BooleanField()
-
-    display_two_name = models.CharField(max_length=50)
-    display_two_play_sound = models.BooleanField()
-
-    display_three_name = models.CharField(max_length=50)
-    display_three_play_sound = models.BooleanField()
-
-    display_four_name = models.CharField(max_length=50)
-    display_four_play_sound = models.BooleanField()
-
-    display_five_name = models.CharField(max_length=50)
-    display_five_play_sound = models.BooleanField()
-
-    display_six_name = models.CharField(max_length=50)
-    display_six_play_sound = models.BooleanField()
+class NewDisplayConfig(models.Model):
+    name = models.CharField(max_length=50)
+    play_sound = models.BooleanField()
+    display_number = models.IntegerField(unique=True)
 
     def __str__(self) -> str:
-        return f"DisplayConfig ({self.id})"
+        return f"Display {self.display_number} - {self.name}"
+    
+    def __repr__(self) -> str:
+        return self.__str__()
 
 
 class RFIDData(models.Model):
@@ -33,15 +22,10 @@ class RFIDData(models.Model):
         return f"RFID Data - {self.RFID}"
 
 
-class SceneList(models.Model):
-    sceneList = models.CharField(max_length=2000)
+class Scene(models.Model):
+    index = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=100)
+    est_time = models.IntegerField(default=120, help_text="Estimated time in seconds")
 
-    def getList(self):
-        out = []
-        test = self.sceneList
-        for word in test.split(","):
-            out.append(word)
-        return out
-    
     def __str__(self):
-        return f"Scene List ({self.id})"
+        return self.name

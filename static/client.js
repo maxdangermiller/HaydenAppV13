@@ -1,6 +1,4 @@
-var Est_Time;
-var Est_Set;
-var Est_Time_Seconds;
+var est_time_seconds = -1;
 var DisplayNumb = window.DisplayNumb;
 var AdminCurrentCode = [];
 var AdminCurrentString = "";
@@ -57,22 +55,11 @@ document.addEventListener('fullscreenchange', (event) => {
 });
 
 var countdown = setInterval(function() {
-    if (Est_Time != 0) {
-        if (Est_Time_Seconds >= 60) {
-            document.getElementById('est-text').innerHTML = Est_Time.toString() + " Minutes";
-            Est_Time -= 1;
-            Est_Time_Seconds = 0;
+    if (est_time_seconds != 0) {
+        if (est_time_seconds > 0) {
+            document.getElementById('est-text').innerHTML = (Math.floor(est_time_seconds / 60)).toString() + ":" + (est_time_seconds % 60).toString().padStart(2, '0');
+            est_time_seconds -= 1;
         }
-        if (Est_Set) {
-            Est_Set = false;
-            if (Est_Time == -1) {
-                document.getElementById('est-text').innerHTML = "~";
-                Est_Time = 0;
-            } else {
-                document.getElementById('est-text').innerHTML = Est_Time.toString() + " Minutes";
-            }
-        }
-        Est_Time_Seconds += 1;
     }
     else {
         document.getElementById('est-text').innerHTML = "~";
@@ -87,20 +74,22 @@ chatSocket.onopen = function(e) {
 }
 
 function playSound() {
-    var audio = new Audio(audioFile);
+    var audio = new Audio(window.audioFile);
     audio.play();
 }
 
 chatSocket.onmessage = function(e) {
     var data = JSON.parse(e.data);
     if (data['type'] === 'UpdateLocation') {
-        if (_playSound == "True" && document.getElementById('current-text').innerHTML != data['current']) { playSound(); }
+        if (window.audioEnable == "True" && document.getElementById('current-text').innerHTML != data['current']) { playSound(); }
+        console.log(data);
+
         document.getElementById('current-text').innerHTML = data['current'];
         document.getElementById('next-text').innerHTML = data['next'];
         document.getElementById('after-text').innerHTML = data['after'];
-        Est_Time_Seconds = 0;
-        Est_Set = true;
-        Est_Time = data['est'];
+
+        est_time_seconds = data['est'];
+
     } else if (data['type'] === 'connectedDisplays') {
         chatSocket.send(JSON.stringify({'command': 'set_connected_display', 'display': DisplayNumb, 'is_protected': isInFullscreen}));
         document.getElementById('mainContainer').style.display = "flex";
@@ -177,7 +166,7 @@ function IsStillOnline() {
         console.log(document.getElementById('mainContainer').style.display)
         document.getElementById('offlineContainer').style.display = "block";
     }
-    setTimeout(IsStillOnline, 10000);
+    setTimeout(IsStillOnline, 20000);
 }
 
 
