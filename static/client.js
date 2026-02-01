@@ -166,7 +166,7 @@ function IsStillOnline() {
         console.log(document.getElementById('mainContainer').style.display)
         document.getElementById('offlineContainer').style.display = "block";
     }
-    setTimeout(IsStillOnline, 20000);
+    setTimeout(IsStillOnline, 30000);
 }
 
 
