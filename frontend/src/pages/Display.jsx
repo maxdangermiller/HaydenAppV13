@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import Modal from '../components/Modal'
-import { formatTime, useElapsed } from '../time'
+import { formatClock, formatTime, receiveState, useShowTime } from '../time'
 import { useDisplays } from '../useDisplays'
 import { useShowSocket } from '../useShowSocket'
 import { VideoReceiver } from '../video'
@@ -44,10 +44,10 @@ function DisplayScreen({ number }) {
   const [receiver] = useState(() => new VideoReceiver((message) => sendRef.current(message), setStream))
 
   const config = displays?.find((d) => d.display_number === number)
-  const elapsed = useElapsed(state)
+  const { elapsed, clock } = useShowTime(state)
 
   const onMessage = useCallback((message) => {
-    if (message.type === 'state') setState({ ...message, receivedAt: Date.now() })
+    if (message.type === 'state') setState(receiveState(message))
     else if (message.type === 'displays') setDisplays(message.displays)
     else if (message.type === 'pong') lastPongRef.current = Date.now()
     else if (message.type === 'video') {
@@ -179,8 +179,10 @@ function DisplayScreen({ number }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [authOpen, adminOpen, joined, submitCode])
 
+  // During the preshow there's nothing to count down to yet: show the time of day instead.
   const remaining = state && state.est > 0 ? state.est - elapsed : 0
-  const estText = remaining > 0 ? formatTime(remaining) : '~'
+  const preshow = !!state?.preshow
+  const estText = preshow ? formatClock(clock) : remaining > 0 ? formatTime(remaining) : '~'
   const showVideo = videoLive && wantsVideo && !!stream
 
   let screen
@@ -213,7 +215,7 @@ function DisplayScreen({ number }) {
             </div>
           </div>
           <div className="band-est">
-            <div className="band-label impact band-color-est">Est. Time</div>
+            <div className="band-label impact band-color-est">{preshow ? 'Time' : 'Est. Time'}</div>
             <div className="band-value band-value-est">{estText}</div>
           </div>
         </div>
@@ -242,7 +244,7 @@ function DisplayScreen({ number }) {
               <div className="scene-box"><h2>{state?.after}</h2></div>
             </div>
             <div className="split-est">
-              <h1 className="impact display-label color-est">Est. Time:</h1>
+              <h1 className="impact display-label color-est">{preshow ? 'Time:' : 'Est. Time:'}</h1>
               <h2>{estText}</h2>
             </div>
           </div>
@@ -270,7 +272,7 @@ function DisplayScreen({ number }) {
           </div>
         </div>
         <div className="display-est">
-          <h1 className="impact color-est">Estimated Time:</h1>
+          <h1 className="impact color-est">{preshow ? 'Current Time:' : 'Estimated Time:'}</h1>
           <h2>{estText}</h2>
         </div>
       </>

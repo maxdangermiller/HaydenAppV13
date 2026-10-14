@@ -6,11 +6,14 @@ or `?display=<n>` to act as display n. Anything else is a read-only viewer.
 
 Client -> server:
     {"action": "next"} / {"action": "previous"} / {"action": "go_to", "index": n}   host only
+    {"action": "open_show"}   host page just opened: restart at the first scene, timer at zero,
+                              unless another host is already connected (e.g. a second device mid-show)
     {"action": "heartbeat", "protected": bool}                                      displays
     {"action": "tamper"}                                                             displays
 
 Server -> client:
-    {"type": "state", index, total, current, next, after, est, elapsed}   everyone, on connect and on change
+    {"type": "state", index, total, current, next, after, est, elapsed, preshow, server_time}
+                                                                          everyone, on connect and on change
     {"type": "displays", "displays": [...]}                               everyone, when configs change
     {"type": "display_status", display, online, protected}                hosts
     {"type": "tamper", display}                                           hosts
@@ -71,6 +74,7 @@ class ShowConsumer(JsonWebsocketConsumer):
         async_to_sync(self.channel_layer.group_add)(show.SHOW_GROUP, self.channel_name)
         if self.is_host:
             async_to_sync(self.channel_layer.group_add)(show.HOSTS_GROUP, self.channel_name)
+            show.connected_hosts += 1
         if self.peer:
             async_to_sync(self.channel_layer.group_add)(show.peer_group(self.peer), self.channel_name)
         self.accept()
@@ -88,6 +92,7 @@ class ShowConsumer(JsonWebsocketConsumer):
         async_to_sync(self.channel_layer.group_discard)(show.SHOW_GROUP, self.channel_name)
         if self.is_host:
             async_to_sync(self.channel_layer.group_discard)(show.HOSTS_GROUP, self.channel_name)
+            show.connected_hosts -= 1
         if self.display:
             async_to_sync(self.channel_layer.group_discard)(show.peer_group(self.peer), self.channel_name)
             show.broadcast(show.HOSTS_GROUP, {
@@ -115,6 +120,12 @@ class ShowConsumer(JsonWebsocketConsumer):
 
     def previous(self, content):
         show.step(-1)
+        show.broadcast_state()
+
+    def open_show(self, content):
+        if show.connected_hosts > 1:
+            return
+        show.restart()
         show.broadcast_state()
 
     def go_to(self, content):
@@ -170,7 +181,7 @@ class ShowConsumer(JsonWebsocketConsumer):
         show.broadcast(show.HOSTS_GROUP, {"type": "signal", "peer": self.peer, "data": content["data"]})
 
     host_actions = {
-        "next": next, "previous": previous, "go_to": go_to,
+        "next": next, "previous": previous, "go_to": go_to, "open_show": open_show,
         "video_state": video_state, "signal": host_signal,
     }
     display_actions = {

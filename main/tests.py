@@ -4,7 +4,10 @@ from asgiref.sync import sync_to_async
 from channels.testing import WebsocketCommunicator
 from django.contrib.auth.models import AnonymousUser, User
 from django.core.files.uploadedfile import SimpleUploadedFile
+from datetime import timedelta
+
 from django.test import TestCase, TransactionTestCase, override_settings
+from django.utils import timezone
 
 from App.asgi import application
 from .consumers import ShowConsumer
@@ -111,6 +114,25 @@ class ApiTests(TestCase):
         self.assertEqual((state["current"], state["next"], state["after"], state["est"]), ("B", "C", "", 120))
         self.assertEqual(show.set_index(10)["index"], 2)
 
+    def test_preshow_detection(self):
+        for name in ["Preshow", "Pre-show", "PRE SHOW", "pre_show"]:
+            self.assertTrue(show.is_preshow(name), name)
+        for name in ["Act 1", "Preshow music", "Show", ""]:
+            self.assertFalse(show.is_preshow(name), name)
+        make_scenes("Pre-show", "Act 1")
+        self.assertTrue(show.get_state()["preshow"])
+        self.assertFalse(show.set_index(1)["preshow"])
+
+    def test_restart_resets_scene_and_timer(self):
+        make_scenes("Preshow", "Act 1")
+        show.set_index(1)
+        ShowState.objects.update(changed_at=timezone.now() - timedelta(hours=3))
+        state = show.restart()
+        self.assertEqual((state["index"], state["current"], state["elapsed"]), (0, "Preshow", 0))
+        # Also resets the timer when already on the first scene.
+        ShowState.objects.update(changed_at=timezone.now() - timedelta(hours=3))
+        self.assertEqual(show.restart()["elapsed"], 0)
+
     def test_state_with_no_scenes(self):
         state = show.get_state()
         self.assertEqual((state["total"], state["current"], state["est"]), (0, "", -1))
@@ -119,6 +141,7 @@ class ApiTests(TestCase):
 class ConsumerTests(TransactionTestCase):
     def setUp(self):
         show.video_state.update(live=False, network="local")
+        show.connected_hosts = 0
 
     async def connect(self, query="", user=None):
         communicator = WebsocketCommunicator(ShowConsumer.as_asgi(), f"/ws/show/?{query}")
@@ -233,6 +256,28 @@ class ConsumerTests(TransactionTestCase):
         await host.send_json_to({"action": "video_state", "live": True, "network": "satellite"})
         self.assertEqual((await host.receive_json_from())["type"], "error")
         await host.disconnect()
+
+    async def test_opening_host_restarts_show_unless_another_host_is_connected(self):
+        await sync_to_async(make_scenes)("Preshow", "Act 1", "Act 2")
+        await sync_to_async(show.set_index)(2)
+        admin = await sync_to_async(User.objects.create_superuser)("admin", password="pw")
+
+        first, _, _ = await self.connect("role=host", admin)
+        self.assertEqual((await first.receive_json_from())["current"], "Act 2")  # state as it was
+        await first.receive_json_from()
+        await first.send_json_to({"action": "open_show"})
+        self.assertEqual((await first.receive_json_from())["current"], "Preshow")
+
+        await first.send_json_to({"action": "next"})
+        await first.receive_json_from()
+        second, _, _ = await self.connect("role=host", admin)
+        await second.receive_json_from()
+        await second.receive_json_from()
+        await second.send_json_to({"action": "open_show"})
+        self.assertTrue(await second.receive_nothing())  # mid-show on another device: no reset
+        self.assertEqual(await sync_to_async(lambda: ShowState.load().current_index)(), 1)
+        await first.disconnect()
+        await second.disconnect()
 
     async def test_displays_cannot_start_video(self):
         display, _, _ = await self.connect("display=1")

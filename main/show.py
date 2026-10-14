@@ -1,4 +1,6 @@
 """Show state and display config helpers shared by the HTTP API and the WebSocket consumer."""
+import re
+
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.conf import settings
@@ -42,6 +44,15 @@ def get_displays():
     return displays
 
 
+# Hosts connected right now. Like video_state, in memory: assumes a single server process.
+connected_hosts = 0
+
+
+def is_preshow(name):
+    """The preshow shows the time of day instead of a countdown. Matches "Preshow", "Pre-show", etc."""
+    return re.sub(r"[^a-z]", "", name.lower()) == "preshow"
+
+
 def get_state():
     """Snapshot of the show sent to every client: the current/next/after scenes and timing."""
     state = ShowState.load()
@@ -61,6 +72,9 @@ def get_state():
         "est": scenes[index].est_time if index < total else -1,
         # Elapsed rather than a timestamp so clients don't depend on their clock matching the server's.
         "elapsed": int((timezone.now() - state.changed_at).total_seconds()),
+        "preshow": is_preshow(scene_name(index)),
+        # For the preshow clock: clients show this time (ticking locally) so every display agrees.
+        "server_time": int(timezone.now().timestamp() * 1000),
     }
 
 
@@ -74,6 +88,16 @@ def set_index(index):
             state.current_index = index
             state.changed_at = timezone.now()
             state.save()
+    return get_state()
+
+
+def restart():
+    """Back to the first scene with the timer at zero, as when the host opens the show."""
+    with transaction.atomic():
+        state = ShowState.objects.select_for_update().get(pk=ShowState.load().pk)
+        state.current_index = 0
+        state.changed_at = timezone.now()
+        state.save()
     return get_state()
 
 

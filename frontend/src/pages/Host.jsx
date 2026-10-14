@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../api'
 import CameraPanel from '../components/CameraPanel'
 import Modal from '../components/Modal'
-import { formatTime, useElapsed } from '../time'
+import { formatClock, formatTime, receiveState, useShowTime } from '../time'
 import { useDisplays } from '../useDisplays'
 import { useShowSocket } from '../useShowSocket'
 import { FPS_OPTIONS, VideoBroadcaster } from '../video'
@@ -30,7 +30,7 @@ export default function Host() {
   const sendRef = useRef(() => false)
   const [broadcaster] = useState(() => new VideoBroadcaster((message) => sendRef.current(message), setViewers))
 
-  const elapsed = useElapsed(state)
+  const { elapsed, clock } = useShowTime(state)
 
   useEffect(() => {
     displaysRef.current = displays
@@ -55,7 +55,7 @@ export default function Host() {
   const onMessage = useCallback((message) => {
     switch (message.type) {
       case 'state':
-        setState({ ...message, receivedAt: Date.now() })
+        setState(receiveState(message))
         setPending(false)
         break
       case 'displays':
@@ -92,6 +92,17 @@ export default function Host() {
   useEffect(() => {
     sendRef.current = send
   }, [send])
+
+  // Opening the host page starts the show: Preshow, timer at zero. Only once per page load, so a
+  // dropped connection doesn't reset a show in progress (the server also skips it if another host
+  // is already connected).
+  const openedRef = useRef(false)
+  useEffect(() => {
+    if (connected && !openedRef.current) {
+      openedRef.current = true
+      send({ action: 'open_show' })
+    }
+  }, [connected, send])
 
   useEffect(() => {
     if (!displays) return
@@ -192,7 +203,9 @@ export default function Host() {
     ['Current', 'color-current', state?.current],
     ['Next', 'color-next', state?.next],
     ['After', 'color-after', state?.after],
-    ['Estimated Time', 'color-est', `${remaining > 0 ? formatTime(remaining) : '~:~~'} / ${formatTime(elapsed)}`],
+    state?.preshow
+      ? ['Current Time', 'color-est', formatClock(clock)]
+      : ['Estimated Time', 'color-est', `${remaining > 0 ? formatTime(remaining) : '~:~~'} / ${formatTime(elapsed)}`],
   ]
 
   return (
