@@ -161,18 +161,6 @@ export default function Host() {
 
   return (
     <div className="host-layout">
-      <div className="host-status">
-        {!connected && <div className="badge bg-warning text-dark mb-3">Reconnecting…</div>}
-        {rows.map(([label, color, value]) => (
-          <div key={label}>
-            <h1 className={`impact ${color}`}>{label}:</h1>
-            <h2>
-              {loading ? <span className="spinner-border" role="status"><span className="visually-hidden">Loading…</span></span> : value}
-            </h2>
-          </div>
-        ))}
-      </div>
-
       <div className="host-controls">
         <div className="display-grid">
           {(displays ?? []).map((display) => {
@@ -210,6 +198,18 @@ export default function Host() {
                  checked={recordTimes} onChange={(e) => setRecordTimes(e.target.checked)} />
           <label className="form-check-label" htmlFor="time-record-switch">Enable Time Recording</label>
         </div>
+      </div>
+
+      <div className="host-status">
+        {!connected && <div className="badge bg-warning text-dark mb-3">Reconnecting…</div>}
+        {rows.map(([label, color, value]) => (
+          <div key={label}>
+            <h1 className={`impact ${color}`}>{label}:</h1>
+            <h2>
+              {loading ? <span className="spinner-border" role="status"><span className="visually-hidden">Loading…</span></span> : value}
+            </h2>
+          </div>
+        ))}
       </div>
 
       {editing && (

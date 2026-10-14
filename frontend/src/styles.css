@@ -138,14 +138,18 @@ body {
 
 /* Host page */
 
+/* Controls fill the centre; scene info sits against the right edge. */
 .host-layout {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  gap: 4rem;
+  gap: 2rem;
   min-height: 100vh;
-  padding: 1rem;
+  padding: 1rem 3rem 1rem 1rem;
+}
+
+.host-layout .host-controls {
+  flex: 1;
 }
 
 .host-status {
