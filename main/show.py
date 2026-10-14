@@ -71,7 +71,8 @@ def get_state():
         "after": scene_name(index + 2),
         "est": scenes[index].est_time if index < total else -1,
         # Elapsed rather than a timestamp so clients don't depend on their clock matching the server's.
-        "elapsed": int((timezone.now() - state.changed_at).total_seconds()),
+        # Unrounded; clients round once, so they don't run up to a second behind.
+        "elapsed": round((timezone.now() - state.changed_at).total_seconds(), 3),
         "preshow": is_preshow(scene_name(index)),
         # For the preshow clock: clients show this time (ticking locally) so every display agrees.
         "server_time": int(timezone.now().timestamp() * 1000),

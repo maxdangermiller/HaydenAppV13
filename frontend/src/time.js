@@ -28,7 +28,7 @@ export function useShowTime(state) {
   }, [])
   if (!state) return { elapsed: 0, clock: now }
   return {
-    elapsed: state.elapsed + Math.max(0, Math.floor((now - state.receivedAt) / 1000)),
+    elapsed: Math.floor(state.elapsed + Math.max(0, now - state.receivedAt) / 1000),
     clock: now + state.clockOffset,
   }
 }

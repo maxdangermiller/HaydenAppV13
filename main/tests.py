@@ -128,10 +128,11 @@ class ApiTests(TestCase):
         show.set_index(1)
         ShowState.objects.update(changed_at=timezone.now() - timedelta(hours=3))
         state = show.restart()
-        self.assertEqual((state["index"], state["current"], state["elapsed"]), (0, "Preshow", 0))
+        self.assertEqual((state["index"], state["current"]), (0, "Preshow"))
+        self.assertLess(state["elapsed"], 1)
         # Also resets the timer when already on the first scene.
         ShowState.objects.update(changed_at=timezone.now() - timedelta(hours=3))
-        self.assertEqual(show.restart()["elapsed"], 0)
+        self.assertLess(show.restart()["elapsed"], 1)
 
     def test_state_with_no_scenes(self):
         state = show.get_state()
@@ -257,7 +258,7 @@ class ConsumerTests(TransactionTestCase):
         self.assertEqual((await host.receive_json_from())["type"], "error")
         await host.disconnect()
 
-    async def test_opening_host_restarts_show_unless_another_host_is_connected(self):
+    async def test_opening_host_restarts_or_asks_unless_another_host_is_connected(self):
         await sync_to_async(make_scenes)("Preshow", "Act 1", "Act 2")
         await sync_to_async(show.set_index)(2)
         admin = await sync_to_async(User.objects.create_superuser)("admin", password="pw")
@@ -265,8 +266,19 @@ class ConsumerTests(TransactionTestCase):
         first, _, _ = await self.connect("role=host", admin)
         self.assertEqual((await first.receive_json_from())["current"], "Act 2")  # state as it was
         await first.receive_json_from()
+        # Mid-show: ask rather than reset.
         await first.send_json_to({"action": "open_show"})
+        self.assertEqual(await first.receive_json_from(), {"type": "resume_prompt"})
+        self.assertTrue(await first.receive_nothing())
+        await first.send_json_to({"action": "restart"})
         self.assertEqual((await first.receive_json_from())["current"], "Preshow")
+
+        # On the first scene there's nothing to lose: just restart the timer.
+        await sync_to_async(ShowState.objects.update)(changed_at=timezone.now() - timedelta(hours=1))
+        await first.send_json_to({"action": "open_show"})
+        state = await first.receive_json_from()
+        self.assertEqual((state["type"], state["current"]), ("state", "Preshow"))
+        self.assertLess(state["elapsed"], 1)
 
         await first.send_json_to({"action": "next"})
         await first.receive_json_from()

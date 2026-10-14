@@ -6,8 +6,10 @@ or `?display=<n>` to act as display n. Anything else is a read-only viewer.
 
 Client -> server:
     {"action": "next"} / {"action": "previous"} / {"action": "go_to", "index": n}   host only
-    {"action": "open_show"}   host page just opened: restart at the first scene, timer at zero,
-                              unless another host is already connected (e.g. a second device mid-show)
+    {"action": "open_show"}   host page just opened. On the first scene: restart its timer. Past it:
+                              reply {"type": "resume_prompt"} so the host can choose. Either way,
+                              nothing happens if another host is already connected (a second device)
+    {"action": "restart"}     back to the first scene, timer at zero
     {"action": "heartbeat", "protected": bool}                                      displays
     {"action": "tamper"}                                                             displays
 
@@ -125,6 +127,12 @@ class ShowConsumer(JsonWebsocketConsumer):
     def open_show(self, content):
         if show.connected_hosts > 1:
             return
+        if show.get_state()["index"] > 0:
+            self.send_json({"type": "resume_prompt"})
+            return
+        self.restart(content)
+
+    def restart(self, content):
         show.restart()
         show.broadcast_state()
 
@@ -181,7 +189,7 @@ class ShowConsumer(JsonWebsocketConsumer):
         show.broadcast(show.HOSTS_GROUP, {"type": "signal", "peer": self.peer, "data": content["data"]})
 
     host_actions = {
-        "next": next, "previous": previous, "go_to": go_to, "open_show": open_show,
+        "next": next, "previous": previous, "go_to": go_to, "open_show": open_show, "restart": restart,
         "video_state": video_state, "signal": host_signal,
     }
     display_actions = {

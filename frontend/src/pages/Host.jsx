@@ -22,6 +22,7 @@ export default function Host() {
   const [editError, setEditError] = useState('')
   const [recordTimes, setRecordTimes] = useState(false)
   const [recordedTime, setRecordedTime] = useState(null)
+  const [resumePrompt, setResumePrompt] = useState(false)
   const displaysRef = useRef(displays)
   const statusesRef = useRef({})
   const alertTimersRef = useRef({})
@@ -71,6 +72,9 @@ export default function Host() {
       case 'error':
         addProblem(message.message)
         break
+      case 'resume_prompt':
+        setResumePrompt(true)
+        break
       case 'video':
         setServerVideo({ live: message.live, network: message.network })
         broadcaster.iceServers = message.ice_servers ?? []
@@ -93,9 +97,9 @@ export default function Host() {
     sendRef.current = send
   }, [send])
 
-  // Opening the host page starts the show: Preshow, timer at zero. Only once per page load, so a
-  // dropped connection doesn't reset a show in progress (the server also skips it if another host
-  // is already connected).
+  // Opening the host page starts the show: Preshow, timer at zero. If a show is already in progress
+  // the server asks first (resume_prompt). Only once per page load, so a dropped connection never
+  // resets anything; the server also skips it if another host is already connected.
   const openedRef = useRef(false)
   useEffect(() => {
     if (connected && !openedRef.current) {
@@ -146,7 +150,7 @@ export default function Host() {
     moveRef.current = move
   })
 
-  const modalOpen = !!editing || !!recordedTime || problems.length > 0
+  const modalOpen = !!editing || !!recordedTime || resumePrompt || problems.length > 0
   useEffect(() => {
     function onKey(event) {
       if (modalOpen || document.querySelector('.modal') || ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return
@@ -325,7 +329,35 @@ export default function Host() {
         </Modal>
       )}
 
-      {!editing && !recordedTime && problems.length > 0 && (
+      {resumePrompt && (
+        <Modal
+          title="Show in progress"
+          onClose={() => setResumePrompt(false)}
+          footer={
+            <>
+              <button type="button" className="btn btn-outline-danger me-auto"
+                      onClick={() => {
+                        setResumePrompt(false)
+                        if (send({ action: 'restart' })) setPending(true)
+                      }}>
+                Start from the beginning
+              </button>
+              <button type="button" className="btn btn-primary" autoFocus onClick={() => setResumePrompt(false)}>
+                Resume
+              </button>
+            </>
+          }
+        >
+          {state ? (
+            <>
+              <p className="mb-1">Currently on <strong>{state.current}</strong>, {formatTime(elapsed)} into the scene.</p>
+              <p className="mb-0 text-muted">Resume where it left off, or start again from the first scene?</p>
+            </>
+          ) : 'Resume where it left off, or start again from the first scene?'}
+        </Modal>
+      )}
+
+      {!editing && !recordedTime && !resumePrompt && problems.length > 0 && (
         <Modal
           title="Problem"
           onClose={() => setProblems([])}
