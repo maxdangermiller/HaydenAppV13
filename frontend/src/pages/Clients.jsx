@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import InstallButton from '../components/InstallButton'
 import { useDisplays } from '../useDisplays'
 
 export default function Clients() {
@@ -27,6 +28,7 @@ export default function Clients() {
         ))
       )}
       <button type="button" className="btn btn-danger btn-lg" onClick={() => navigate('/join')}>Go Back</button>
+      <InstallButton />
     </div>
   )
 }

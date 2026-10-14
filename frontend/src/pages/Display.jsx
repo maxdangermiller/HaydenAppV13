@@ -38,7 +38,7 @@ function DisplayScreen({ number }) {
   const lastPongRef = useRef(Date.now())
   const leavingRef = useRef(false)
   const previousSceneRef = useRef(null)
-  const [video, setVideo] = useState({ live: false, layout: 'overlay' })
+  const [videoLive, setVideoLive] = useState(false)
   const [stream, setStream] = useState(null)
   const sendRef = useRef(() => false)
   const [receiver] = useState(() => new VideoReceiver((message) => sendRef.current(message), setStream))
@@ -51,10 +51,8 @@ function DisplayScreen({ number }) {
     else if (message.type === 'displays') setDisplays(message.displays)
     else if (message.type === 'pong') lastPongRef.current = Date.now()
     else if (message.type === 'video') {
-      setVideo({ live: message.live, layout: message.layout })
+      setVideoLive(message.live)
       receiver.iceServers = message.ice_servers ?? []
-      if (message.live) receiver.request()
-      else receiver.close()
     } else if (message.type === 'signal') receiver.handleSignal(message.data)
   }, [setDisplays, receiver])
 
@@ -64,11 +62,15 @@ function DisplayScreen({ number }) {
     sendRef.current = send
   }, [send])
 
-  // The host drops our video connection when our socket goes; the server re-sends the video
-  // state when we reconnect, and we ask again then.
+  // Only take the stream when it's live and this display's layout uses it; "No video" displays
+  // never connect, so the host doesn't spend bandwidth on them. The host drops our connection when
+  // our socket goes, so after a reconnect we ask again.
+  const videoLayout = config?.video_layout
+  const wantsVideo = !!videoLayout && videoLayout !== 'none'
   useEffect(() => {
-    if (!connected) receiver.close()
-  }, [connected, receiver])
+    if (connected && videoLive && wantsVideo) receiver.request()
+    else receiver.close()
+  }, [connected, videoLive, wantsVideo, receiver])
 
   useEffect(() => () => receiver.close(), [receiver])
 
@@ -179,7 +181,7 @@ function DisplayScreen({ number }) {
 
   const remaining = state && state.est > 0 ? state.est - elapsed : 0
   const estText = remaining > 0 ? formatTime(remaining) : '~'
-  const showVideo = video.live && !!stream
+  const showVideo = videoLive && wantsVideo && !!stream
 
   let screen
   if (offline) {
@@ -189,7 +191,7 @@ function DisplayScreen({ number }) {
         <h2 className="impact text-white">We're working on it!</h2>
       </div>
     )
-  } else if (showVideo && video.layout === 'overlay') {
+  } else if (showVideo && videoLayout === 'overlay') {
     // Full-screen video with the scene info in a lower-third band on top of it.
     screen = (
       <div className="video-overlay-layout">

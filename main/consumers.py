@@ -19,12 +19,13 @@ Server -> client:
 
 Video (WebRTC). Media goes straight from the host's browser to each display; the server only
 relays the small setup messages, addressing each display socket by a random `peer` id.
-    host -> server:    {"action": "video_state", "live": bool, "layout": "overlay"|"split",
-                        "network": "local"|"internet"}
+    host -> server:    {"action": "video_state", "live": bool, "network": "local"|"internet"}
                        {"action": "signal", "peer": id, "data": {...}}
     display -> server: {"action": "video_join"}            ask the streaming host for an offer
+                       {"action": "video_leave"}           stop receiving (e.g. layout set to "No video")
                        {"action": "signal", "data": {...}}
-    server -> all:     {"type": "video", live, layout, network, ice_servers}   on connect and on change
+    server -> all:     {"type": "video", live, network, ice_servers}   on connect and on change
+                       (each display's layout is part of its display config)
     server -> hosts:   {"type": "video_join", peer, display} / {"type": "video_leave", peer}
                        {"type": "signal", peer, data}
     server -> display: {"type": "signal", data}
@@ -127,13 +128,12 @@ class ShowConsumer(JsonWebsocketConsumer):
 
     def video_state(self, content):
         live = content.get("live")
-        layout = content.get("layout", show.video_state["layout"])
         network = content.get("network", show.video_state["network"])
-        if not isinstance(live, bool) or layout not in show.VIDEO_LAYOUTS or network not in show.VIDEO_NETWORKS:
-            self.send_json({"type": "error", "message": "video_state requires live (bool) and a valid layout and network"})
+        if not isinstance(live, bool) or network not in show.VIDEO_NETWORKS:
+            self.send_json({"type": "error", "message": "video_state requires live (bool) and a valid network"})
             return
         self.streaming = live
-        show.video_state.update(live=live, layout=layout, network=network)
+        show.video_state.update(live=live, network=network)
         show.broadcast_video()
 
     def host_signal(self, content):
@@ -160,6 +160,9 @@ class ShowConsumer(JsonWebsocketConsumer):
     def video_join(self, content):
         show.broadcast(show.HOSTS_GROUP, {"type": "video_join", "peer": self.peer, "display": self.display})
 
+    def video_leave(self, content):
+        show.broadcast(show.HOSTS_GROUP, {"type": "video_leave", "peer": self.peer})
+
     def display_signal(self, content):
         if not isinstance(content.get("data"), dict):
             self.send_json({"type": "error", "message": "signal requires a data object"})
@@ -172,7 +175,7 @@ class ShowConsumer(JsonWebsocketConsumer):
     }
     display_actions = {
         "heartbeat": heartbeat, "tamper": tamper,
-        "video_join": video_join, "signal": display_signal,
+        "video_join": video_join, "video_leave": video_leave, "signal": display_signal,
     }
 
     # Channel layer events

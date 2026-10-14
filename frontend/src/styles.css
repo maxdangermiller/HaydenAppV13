@@ -325,24 +325,73 @@ body {
 .split-est { padding-right: 8vw; }
 .split-est h2 { font-size: 6vh; margin: 0; font-variant-numeric: tabular-nums; }
 
-/* Host camera panel */
-.camera-panel {
-  width: 100%;
-  max-width: 34rem;
-  padding: 0.75rem;
-  border: 3px solid #212529;
-  border-radius: 0.5rem;
+/* Host video controls */
+.video-controls {
   display: flex;
-  flex-direction: column;
   gap: 0.5rem;
 }
 
-.camera-preview {
+.video-controls-note {
+  max-width: 26rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.video-controls-note code { color: inherit; }
+
+/* Floating live preview, bottom-left (the credits are bottom-right) */
+.video-float {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 1040;
+  width: 320px;
+  border-radius: 0.6rem;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.video-float.minimized { width: auto; }
+
+.video-float-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.4rem 0.75rem;
+  border: 0;
+  background: transparent;
+  color: white;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.video-float-toggle { margin-left: auto; padding-left: 0.75rem; opacity: 0.8; }
+
+.video-float-preview {
+  display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
   background: black;
-  border-radius: 0.25rem;
   object-fit: contain;
+}
+
+.video-float.minimized .video-float-preview { display: none; }
+
+.live-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: #e5383b;
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  50% { opacity: 0.35; }
 }
 
 .viewer-table {

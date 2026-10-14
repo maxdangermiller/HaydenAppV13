@@ -38,8 +38,8 @@ class ApiTests(TestCase):
         NewDisplayConfig.objects.create(display_number=2, name="Fitzgerald", play_sound=True)
         displays = self.client.get("/api/displays/").json()["displays"]
         self.assertEqual(len(displays), 6)
-        self.assertEqual(displays[0], {"display_number": 1, "name": "Display 1", "play_sound": False, "max_video_fps": 30})
-        self.assertEqual(displays[1], {"display_number": 2, "name": "Fitzgerald", "play_sound": True, "max_video_fps": 30})
+        self.assertEqual(displays[0], {"display_number": 1, "name": "Display 1", "play_sound": False, "max_video_fps": 30, "video_layout": "overlay"})
+        self.assertEqual(displays[1], {"display_number": 2, "name": "Fitzgerald", "play_sound": True, "max_video_fps": 30, "video_layout": "overlay"})
 
     def test_update_display_requires_superuser(self):
         url = "/api/displays/3/"
@@ -55,6 +55,11 @@ class ApiTests(TestCase):
         self.assertEqual(NewDisplayConfig.objects.get(display_number=3).name, "Lobby")
         self.assertEqual(self.put_json(url, {"name": "Lobby", "play_sound": True, "max_video_fps": 5}).status_code, 200)
         self.assertEqual(NewDisplayConfig.objects.get(display_number=3).max_video_fps, 5)
+        self.assertEqual(self.put_json(url, {"name": "Lobby", "play_sound": True, "video_layout": "sideways"}).status_code, 400)
+        self.assertEqual(self.put_json(url, {"name": "Lobby", "play_sound": True, "video_layout": "split"}).status_code, 200)
+        self.assertEqual(NewDisplayConfig.objects.get(display_number=3).video_layout, "split")
+        self.assertEqual(self.put_json(url, {"name": "Lobby", "play_sound": True, "video_layout": "none"}).status_code, 200)
+        self.assertEqual(NewDisplayConfig.objects.get(display_number=3).video_layout, "none")
 
     def test_verify_rfid(self):
         RFIDData.objects.create(RFID="12345")
@@ -113,7 +118,7 @@ class ApiTests(TestCase):
 
 class ConsumerTests(TransactionTestCase):
     def setUp(self):
-        show.video_state.update(live=False, layout="overlay", network="local")
+        show.video_state.update(live=False, network="local")
 
     async def connect(self, query="", user=None):
         communicator = WebsocketCommunicator(ShowConsumer.as_asgi(), f"/ws/show/?{query}")
@@ -182,10 +187,10 @@ class ConsumerTests(TransactionTestCase):
             await communicator.receive_json_from()
             await communicator.receive_json_from()
 
-        await host.send_json_to({"action": "video_state", "live": True, "layout": "split"})
+        await host.send_json_to({"action": "video_state", "live": True})
         for communicator in (host, display, other):
             self.assertEqual(await communicator.receive_json_from(), {
-                "type": "video", "live": True, "layout": "split", "network": "local", "ice_servers": [],
+                "type": "video", "live": True, "network": "local", "ice_servers": [],
             })
 
         await display.send_json_to({"action": "video_join"})
@@ -200,13 +205,16 @@ class ConsumerTests(TransactionTestCase):
         await display.send_json_to({"action": "signal", "data": {"sdp": "answer"}})
         self.assertEqual(await host.receive_json_from(), {"type": "signal", "peer": peer, "data": {"sdp": "answer"}})
 
+        await display.send_json_to({"action": "video_leave"})
+        self.assertEqual(await host.receive_json_from(), {"type": "video_leave", "peer": peer})
+
         await host.send_json_to({"action": "signal", "peer": "../evil", "data": {}})
         self.assertEqual((await host.receive_json_from())["type"], "error")
 
         # Losing the streaming host takes the video down for everyone.
         await host.disconnect()
         self.assertEqual(await display.receive_json_from(), {
-            "type": "video", "live": False, "layout": "split", "network": "local", "ice_servers": [],
+            "type": "video", "live": False, "network": "local", "ice_servers": [],
         })
         await display.disconnect()
         await other.disconnect()
@@ -251,6 +259,17 @@ class IceServerTests(TestCase):
 
 
 class RoutingTests(TestCase):
+    def test_service_worker_served_from_root(self):
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as dist, self.settings(FRONTEND_DIST_DIR=Path(dist)):
+            self.assertEqual(self.client.get("/sw.js").status_code, 404)
+            (Path(dist) / "sw.js").write_text("self.addEventListener('fetch', () => {})")
+            response = self.client.get("/sw.js")
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response["Content-Type"], "text/javascript")
+            self.assertEqual(response["Cache-Control"], "no-cache")
+
     def test_asgi_application_imports(self):
         self.assertIsNotNone(application)
 

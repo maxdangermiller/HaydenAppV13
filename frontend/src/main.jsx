@@ -5,6 +5,9 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import './styles.css'
 import App from './App'
 import { AuthProvider } from './auth'
+import { registerServiceWorker } from './pwa'
+
+registerServiceWorker()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

@@ -29,8 +29,12 @@ directly from the host's browser to each display over the local network (WebRTC)
 relays a few small setup messages. The host computer uploads one copy per display: about
 2.5 Mbps each at 720p, 4.5 Mbps at 1080p. Use a wired connection for 1080p to several displays.
 
-The layout menu switches every display between the scene info over the video and the video above
-the info.
+While live, a preview floats in the bottom-left corner of the host page; click its bar to minimize
+it. Camera, resolution, network and frame rate options are under **Video settings**.
+
+Each display has its own video layout (scene info over the video, video above the info, or no
+video) and frame rate limit: click the display on the host page to change them. "No video" displays
+never connect to the stream, so they cost the host no bandwidth.
 
 **Frame rate.** Video is an extra; the scene info uses its own connection and never waits on it.
 To keep weaker displays smooth:
@@ -42,11 +46,11 @@ To keep weaker displays smooth:
   5 fps and below the picture is downscaled too.
 - **Per display:** click a display on the host page and set a frame rate limit, e.g. 5 fps for a
   display on Wi-Fi. Saved on the server.
-- **Overall:** the camera panel's "Max fps" caps every display.
+- **Overall:** "Max frame rate" in Video settings caps every display.
 
-The camera panel shows each display's actual frame rate, bitrate, and why it is limited.
+Video settings shows each display's actual frame rate, bitrate, and why it is limited.
 
-The network menu (change it while video is stopped) picks how displays reach the host:
+The network setting (change it while video is stopped) picks how displays reach the host:
 
 - **Local only** (default): video stays on the venue network and no outside servers are involved.
   Works with `serve.sh` or the Heroku site, as long as the displays are on the same network as the host.
@@ -62,6 +66,20 @@ The network menu (change it while video is stopped) picks how displays reach the
 
   `WEBRTC_STUN_URLS` overrides the default Google STUN servers. TURN bandwidth is billed by the
   provider; each relayed display uses the same upload as above.
+
+## Installing as an app (PWA)
+
+On the https:// website, Chrome and Edge show an **Install app** button on the Join and display
+picker pages (or use the install icon in the address bar). On iPhone and iPad, use Share → Add to
+Home Screen. The installed app has shortcuts to Host and Displays.
+
+The service worker (`frontend/public/sw.js`, served at `/sw.js`) caches the app's code so it loads
+quickly, and so a display that reloads while the server is unreachable shows its Offline screen and
+reconnects on its own instead of a browser error. Live data (`/api/`, `/admin/`, the WebSocket) is
+never cached, and pages are always fetched fresh first, so deploys show up on the next load.
+
+Browsers only allow this on secure pages: the Heroku site, or `localhost`. Displays opening a local
+`serve.sh` server by IP address work as before, just without install or offline caching.
 
 ## Local development
 

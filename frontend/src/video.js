@@ -336,6 +336,8 @@ export class VideoReceiver {
   close() {
     this.wanted = false
     clearTimeout(this.retryTimer)
+    // Tell the host right away so it stops encoding for us, rather than waiting ~30s to notice.
+    if (this.pc) this.send({ action: 'video_leave' })
     this.reset()
   }
 

@@ -11,7 +11,6 @@ from .models import DISPLAY_COUNT, NewDisplayConfig, Scene, ShowState
 SHOW_GROUP = "show"
 HOSTS_GROUP = "hosts"
 
-VIDEO_LAYOUTS = ("overlay", "split")
 # "local": video only reaches displays on the host's own network, no outside servers involved.
 # "internet": also uses the STUN/TURN servers from settings, so displays elsewhere can connect.
 VIDEO_NETWORKS = ("local", "internet")
@@ -19,7 +18,7 @@ VIDEO_NETWORKS = ("local", "internet")
 # Whether the host's camera is live and how displays should lay it out. Kept in memory because it
 # only means anything while the streaming host is connected; like the in-memory channel layer,
 # this assumes a single server process.
-video_state = {"live": False, "layout": "overlay", "network": "local"}
+video_state = {"live": False, "network": "local"}
 
 
 def peer_group(peer):
@@ -38,6 +37,7 @@ def get_displays():
             "name": config.name if config else f"Display {number}",
             "play_sound": config.play_sound if config else False,
             "max_video_fps": config.max_video_fps if config else 30,
+            "video_layout": config.video_layout if config else "overlay",
         })
     return displays
 

@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
+import InstallButton from '../components/InstallButton'
 
 export default function Join() {
   const navigate = useNavigate()
@@ -13,6 +14,7 @@ export default function Join() {
         <button type="button" className="btn btn-dark btn-lg" onClick={() => navigate('/clients')}>Client</button>
       </div>
       <button type="button" className="btn btn-primary" onClick={() => navigate('/upload')}>Upload Show CSV</button>
+      <InstallButton />
       <button type="button" className="btn btn-link text-white" onClick={logout}>
         Log out {user.username}
       </button>

@@ -25,7 +25,7 @@ export default function Host() {
   const displaysRef = useRef(displays)
   const statusesRef = useRef({})
   const alertTimersRef = useRef({})
-  const [serverVideo, setServerVideo] = useState({ live: false, layout: 'overlay' })
+  const [serverVideo, setServerVideo] = useState({ live: false })
   const [viewers, setViewers] = useState([])
   const sendRef = useRef(() => false)
   const [broadcaster] = useState(() => new VideoBroadcaster((message) => sendRef.current(message), setViewers))
@@ -72,7 +72,7 @@ export default function Host() {
         addProblem(message.message)
         break
       case 'video':
-        setServerVideo({ live: message.live, layout: message.layout, network: message.network })
+        setServerVideo({ live: message.live, network: message.network })
         broadcaster.iceServers = message.ice_servers ?? []
         break
       case 'video_join':
@@ -126,7 +126,8 @@ export default function Host() {
     if (pending || !(delta > 0 ? canGoForward : canGoBack)) return
     if (!send({ action: delta > 0 ? 'next' : 'previous' })) return
     setPending(true)
-    if (recordTimes) setRecordedTime({ index: state.index, name: state.current, seconds: elapsed })
+    // Only moving forward completes a scene; stepping back is a correction, not a timing.
+    if (recordTimes && delta > 0) setRecordedTime({ index: state.index, name: state.current, seconds: elapsed })
   }
 
   const moveRef = useRef(move)
@@ -137,7 +138,7 @@ export default function Host() {
   const modalOpen = !!editing || !!recordedTime || problems.length > 0
   useEffect(() => {
     function onKey(event) {
-      if (modalOpen || ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return
+      if (modalOpen || document.querySelector('.modal') || ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return
       if (event.key === ' ' || event.key === 'ArrowRight') moveRef.current(1)
       else if (event.key === 'ArrowLeft') moveRef.current(-1)
       else return
@@ -152,7 +153,12 @@ export default function Host() {
     try {
       const data = await api(`displays/${editing.display_number}/`, {
         method: 'PUT',
-        body: { name: editing.name, play_sound: editing.play_sound, max_video_fps: editing.max_video_fps },
+        body: {
+          name: editing.name,
+          play_sound: editing.play_sound,
+          max_video_fps: editing.max_video_fps,
+          video_layout: editing.video_layout,
+        },
       })
       setDisplays(data.displays)
       setEditing(null)
@@ -270,7 +276,17 @@ export default function Host() {
                    onChange={(e) => setEditing({ ...editing, play_sound: e.target.checked })} />
             <label htmlFor="display-sound" className="form-check-label">Play sound on scene change</label>
           </div>
-          <label htmlFor="display-fps" className="form-label mt-3">Live video frame rate limit</label>
+
+          <hr />
+          <h6 className="mb-3">Live video</h6>
+          <label htmlFor="display-layout" className="form-label">Layout</label>
+          <select id="display-layout" className="form-select" value={editing.video_layout}
+                  onChange={(e) => setEditing({ ...editing, video_layout: e.target.value })}>
+            <option value="overlay">Scene info over the video</option>
+            <option value="split">Video above the scene info</option>
+            <option value="none">No video</option>
+          </select>
+          <label htmlFor="display-fps" className="form-label mt-3">Frame rate limit</label>
           <select id="display-fps" className="form-select" value={editing.max_video_fps}
                   onChange={(e) => setEditing({ ...editing, max_video_fps: Number(e.target.value) })}>
             {FPS_OPTIONS.map((fps) => <option key={fps} value={fps}>{fps} fps{fps === 30 ? ' (no limit)' : ''}</option>)}

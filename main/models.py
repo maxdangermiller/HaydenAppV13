@@ -6,6 +6,11 @@ DISPLAY_COUNT = 6
 
 # Frame rates a display's live video can be limited to (see the host's camera controls).
 VIDEO_FPS_CHOICES = (30, 15, 10, 5, 2)
+VIDEO_LAYOUT_CHOICES = (
+    ("overlay", "Scene info over the video"),
+    ("split", "Video above the scene info"),
+    ("none", "No video"),
+)
 
 
 class NewDisplayConfig(models.Model):
@@ -16,6 +21,7 @@ class NewDisplayConfig(models.Model):
         default=30, choices=[(fps, f"{fps} fps") for fps in VIDEO_FPS_CHOICES],
         help_text="Upper limit for live video on this display, e.g. lower for displays on Wi-Fi",
     )
+    video_layout = models.CharField(max_length=10, default="overlay", choices=VIDEO_LAYOUT_CHOICES)
 
     def __str__(self) -> str:
         return f"Display {self.display_number} - {self.name}"

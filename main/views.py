@@ -11,7 +11,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from . import show
-from .models import DISPLAY_COUNT, VIDEO_FPS_CHOICES, NewDisplayConfig, RFIDData, Scene
+from .models import DISPLAY_COUNT, VIDEO_FPS_CHOICES, VIDEO_LAYOUT_CHOICES, NewDisplayConfig, RFIDData, Scene
 
 
 def error(message, status=400):
@@ -102,10 +102,16 @@ def display_detail(request, number):
     max_video_fps = data.get("max_video_fps", 30)
     if max_video_fps not in VIDEO_FPS_CHOICES or isinstance(max_video_fps, bool):
         return error(f"max_video_fps must be one of {', '.join(map(str, VIDEO_FPS_CHOICES))}.")
+    video_layout = data.get("video_layout", "overlay")
+    if video_layout not in dict(VIDEO_LAYOUT_CHOICES):
+        return error(f"video_layout must be one of {', '.join(dict(VIDEO_LAYOUT_CHOICES))}.")
 
     NewDisplayConfig.objects.update_or_create(
         display_number=number,
-        defaults={"name": name, "play_sound": data["play_sound"], "max_video_fps": max_video_fps},
+        defaults={
+            "name": name, "play_sound": data["play_sound"],
+            "max_video_fps": max_video_fps, "video_layout": video_layout,
+        },
     )
     show.broadcast_displays()
     return JsonResponse({"displays": show.get_displays()})
@@ -196,3 +202,15 @@ def spa(request):
             status=503, content_type="text/plain",
         )
     return HttpResponse(index_file.read_text(encoding="utf-8"))
+
+
+def service_worker(request):
+    """The PWA service worker. It must be served from the site root to control every page, but the
+    build lives under /static/, so it gets its own route."""
+    worker = settings.FRONTEND_DIST_DIR / "sw.js"
+    if not worker.exists():
+        return HttpResponse(status=404)
+    response = HttpResponse(worker.read_text(encoding="utf-8"), content_type="text/javascript")
+    # Browsers check for a new worker on each visit; don't let a cache hide updates.
+    response["Cache-Control"] = "no-cache"
+    return response
