@@ -1,0 +1,265 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { api } from '../api'
+import Modal from '../components/Modal'
+import { formatTime, useElapsed } from '../time'
+import { useDisplays } from '../useDisplays'
+import { useShowSocket } from '../useShowSocket'
+
+// Displays heartbeat every 5s; treat one as gone after missing a few.
+const STALE_MS = 15000
+// Only alert about a disconnect if the display hasn't come back by then (e.g. a quick reload).
+const DISCONNECT_ALERT_DELAY_MS = 10000
+
+export default function Host() {
+  const [displays, setDisplays] = useDisplays()
+  const [state, setState] = useState(null)
+  const [pending, setPending] = useState(false)
+  const [statuses, setStatuses] = useState({})
+  const [problems, setProblems] = useState([])
+  const [editing, setEditing] = useState(null)
+  const [editError, setEditError] = useState('')
+  const [recordTimes, setRecordTimes] = useState(false)
+  const [recordedTime, setRecordedTime] = useState(null)
+  const displaysRef = useRef(displays)
+  const statusesRef = useRef({})
+  const alertTimersRef = useRef({})
+
+  const elapsed = useElapsed(state)
+
+  useEffect(() => {
+    displaysRef.current = displays
+  }, [displays])
+
+  const nameOf = (number) => displaysRef.current?.find((d) => d.display_number === number)?.name ?? `Display ${number}`
+  const addProblem = (text) => setProblems((current) => [...current, text])
+
+  const setStatus = useCallback((number, online, isProtected) => {
+    const wasOnline = statusesRef.current[number]?.online
+    statusesRef.current = { ...statusesRef.current, [number]: { online, protected: isProtected, seenAt: Date.now() } }
+    setStatuses(statusesRef.current)
+
+    clearTimeout(alertTimersRef.current[number])
+    if (wasOnline && !online) {
+      alertTimersRef.current[number] = setTimeout(() => {
+        if (!statusesRef.current[number]?.online) addProblem(`Display ${nameOf(number)} Has Disconnected!`)
+      }, DISCONNECT_ALERT_DELAY_MS)
+    }
+  }, [])
+
+  const onMessage = useCallback((message) => {
+    switch (message.type) {
+      case 'state':
+        setState({ ...message, receivedAt: Date.now() })
+        setPending(false)
+        break
+      case 'displays':
+        setDisplays(message.displays)
+        break
+      case 'display_status':
+        setStatus(message.display, message.online, message.protected)
+        break
+      case 'tamper':
+        addProblem(`Tamper Alert on ${nameOf(message.display)}!`)
+        setStatus(message.display, true, false)
+        break
+      case 'error':
+        addProblem(message.message)
+        break
+    }
+  }, [setDisplays, setStatus])
+
+  const { send, connected, rejected } = useShowSocket('role=host', onMessage)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      for (const [number, status] of Object.entries(statusesRef.current)) {
+        if (status.online && Date.now() - status.seenAt > STALE_MS) setStatus(Number(number), false, false)
+      }
+    }, 2000)
+    return () => {
+      clearInterval(id)
+      Object.values(alertTimersRef.current).forEach(clearTimeout)
+    }
+  }, [setStatus])
+
+  // Don't leave the spinner up forever if a state update gets lost.
+  useEffect(() => {
+    if (!pending) return
+    const id = setTimeout(() => setPending(false), 3000)
+    return () => clearTimeout(id)
+  }, [pending])
+
+  const canGoBack = !!state && state.index > 0
+  const canGoForward = !!state && state.index < state.total - 1
+
+  function move(delta) {
+    if (pending || !(delta > 0 ? canGoForward : canGoBack)) return
+    if (!send({ action: delta > 0 ? 'next' : 'previous' })) return
+    setPending(true)
+    if (recordTimes) setRecordedTime({ index: state.index, name: state.current, seconds: elapsed })
+  }
+
+  const moveRef = useRef(move)
+  useEffect(() => {
+    moveRef.current = move
+  })
+
+  const modalOpen = !!editing || !!recordedTime || problems.length > 0
+  useEffect(() => {
+    function onKey(event) {
+      if (modalOpen || ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return
+      if (event.key === ' ' || event.key === 'ArrowRight') moveRef.current(1)
+      else if (event.key === 'ArrowLeft') moveRef.current(-1)
+      else return
+      // Stops Space from also "clicking" whichever button has focus.
+      event.preventDefault()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [modalOpen])
+
+  async function saveDisplay() {
+    try {
+      const data = await api(`displays/${editing.display_number}/`, {
+        method: 'PUT',
+        body: { name: editing.name, play_sound: editing.play_sound },
+      })
+      setDisplays(data.displays)
+      setEditing(null)
+    } catch (err) {
+      setEditError(err.message)
+    }
+  }
+
+  async function saveRecordedTime() {
+    const { index, seconds } = recordedTime
+    setRecordedTime(null)
+    try {
+      await api(`scenes/${index}/`, { method: 'PATCH', body: { est_time: seconds } })
+    } catch (err) {
+      addProblem(`Couldn't save the recorded time: ${err.message}`)
+    }
+  }
+
+  if (rejected) {
+    return (
+      <div className="page-center">
+        <h1 className="impact text-white">Session expired</h1>
+        <button type="button" className="btn btn-dark btn-lg" onClick={() => window.location.assign('/login')}>Log in again</button>
+      </div>
+    )
+  }
+
+  const loading = !state || pending || !connected
+  const remaining = state && state.est > 0 ? state.est - elapsed : 0
+  const rows = [
+    ['Current', 'color-current', state?.current],
+    ['Next', 'color-next', state?.next],
+    ['After', 'color-after', state?.after],
+    ['Estimated Time', 'color-est', `${remaining > 0 ? formatTime(remaining) : '~:~~'} / ${formatTime(elapsed)}`],
+  ]
+
+  return (
+    <div className="host-layout">
+      <div className="host-status">
+        {!connected && <div className="badge bg-warning text-dark mb-3">Reconnecting…</div>}
+        {rows.map(([label, color, value]) => (
+          <div key={label}>
+            <h1 className={`impact ${color}`}>{label}:</h1>
+            <h2>
+              {loading ? <span className="spinner-border" role="status"><span className="visually-hidden">Loading…</span></span> : value}
+            </h2>
+          </div>
+        ))}
+      </div>
+
+      <div className="host-controls">
+        <div className="display-grid">
+          {(displays ?? []).map((display) => {
+            const status = statuses[display.display_number]
+            const statusClass = status?.online ? (status.protected ? 'btn-display-protected' : 'btn-display-unprotected') : ''
+            return (
+              <button
+                key={display.display_number}
+                type="button"
+                className={`btn btn-dark ${statusClass}`}
+                title={status?.online ? (status.protected ? 'Online, fullscreen' : 'Online, not fullscreen') : 'Offline'}
+                onClick={() => {
+                  setEditError('')
+                  setEditing({ ...display })
+                }}
+              >
+                {display.name}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="button-row">
+          <button type="button" className="btn btn-dark btn-lg" disabled={!canGoBack || pending} onClick={() => move(-1)}>
+            Backward
+          </button>
+          <button type="button" className="btn btn-dark btn-lg" disabled={!canGoForward || pending} onClick={() => move(1)}>
+            Forward
+          </button>
+        </div>
+        {state && state.total === 0 && <div className="text-white">No scenes loaded. Upload a show CSV first.</div>}
+
+        <div className="form-check form-switch time-record-switch">
+          <input className="form-check-input" type="checkbox" role="switch" id="time-record-switch"
+                 checked={recordTimes} onChange={(e) => setRecordTimes(e.target.checked)} />
+          <label className="form-check-label" htmlFor="time-record-switch">Enable Time Recording</label>
+        </div>
+      </div>
+
+      {editing && (
+        <Modal
+          title={`Edit ${displays.find((d) => d.display_number === editing.display_number)?.name}`}
+          onClose={() => setEditing(null)}
+          footer={
+            <>
+              <button type="button" className="btn btn-secondary" onClick={() => setEditing(null)}>Close</button>
+              <button type="button" className="btn btn-primary" onClick={saveDisplay}>Save changes</button>
+            </>
+          }
+        >
+          <label htmlFor="display-name" className="form-label">Name</label>
+          <input id="display-name" type="text" className="form-control" maxLength={50} autoFocus
+                 value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+          <div className="form-check mt-3">
+            <input id="display-sound" className="form-check-input" type="checkbox" checked={editing.play_sound}
+                   onChange={(e) => setEditing({ ...editing, play_sound: e.target.checked })} />
+            <label htmlFor="display-sound" className="form-check-label">Play sound on scene change</label>
+          </div>
+          {editError && <div className="text-danger mt-2">{editError}</div>}
+        </Modal>
+      )}
+
+      {recordedTime && (
+        <Modal
+          title="Save Time"
+          onClose={() => setRecordedTime(null)}
+          footer={
+            <>
+              <button type="button" className="btn btn-secondary" onClick={() => setRecordedTime(null)}>Close</button>
+              <button type="button" className="btn btn-primary" onClick={saveRecordedTime}>Save</button>
+            </>
+          }
+        >
+          <h5>Save the recorded time as the estimate for "{recordedTime.name}"?</h5>
+          <h5>Recorded Time: {formatTime(recordedTime.seconds)}</h5>
+        </Modal>
+      )}
+
+      {!editing && !recordedTime && problems.length > 0 && (
+        <Modal
+          title="Problem"
+          onClose={() => setProblems([])}
+          footer={<button type="button" className="btn btn-secondary" onClick={() => setProblems([])}>Close</button>}
+        >
+          {problems.map((problem, i) => <h5 key={i} className="text-danger">{problem}</h5>)}
+        </Modal>
+      )}
+    </div>
+  )
+}

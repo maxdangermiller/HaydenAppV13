@@ -1,6 +1,9 @@
 from django.db import models
-from django.contrib.auth.models import User
-    
+from django.utils import timezone
+
+
+DISPLAY_COUNT = 6
+
 
 class NewDisplayConfig(models.Model):
     name = models.CharField(max_length=50)
@@ -9,7 +12,7 @@ class NewDisplayConfig(models.Model):
 
     def __str__(self) -> str:
         return f"Display {self.display_number} - {self.name}"
-    
+
     def __repr__(self) -> str:
         return self.__str__()
 
@@ -29,3 +32,18 @@ class Scene(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ShowState(models.Model):
+    """Single-row table holding the live position in the show."""
+
+    current_index = models.IntegerField(default=0)
+    changed_at = models.DateTimeField(default=timezone.now)
+
+    @classmethod
+    def load(cls):
+        state, _ = cls.objects.get_or_create(pk=1)
+        return state
+
+    def __str__(self):
+        return f"Show at scene {self.current_index}"

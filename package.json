@@ -1,0 +1,11 @@
+{
+  "name": "hayden-auditorium",
+  "private": true,
+  "description": "Builds the React frontend so Django can serve it. Heroku's Node buildpack runs `build` automatically.",
+  "scripts": {
+    "build": "npm --prefix frontend ci && npm --prefix frontend run build"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}

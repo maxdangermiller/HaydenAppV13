@@ -1,0 +1,186 @@
+html, body, #root {
+  min-height: 100vh;
+}
+
+body {
+  background-color: grey;
+}
+
+.impact {
+  font-family: Impact, 'Arial Narrow Bold', sans-serif;
+}
+
+.page-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.page-title {
+  color: white;
+  font-size: clamp(3rem, 12vw, 10rem);
+  margin: 0;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.credits {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+/* Scene colours, shared by host and display */
+.color-current { color: #800000; }
+.color-next { color: #000099; }
+.color-after { color: #003300; }
+.color-est { color: #6600cc; }
+
+/* Display (kiosk) page */
+
+.display-page {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: grey;
+}
+
+.display-title {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 15vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 8vh;
+  margin: 0;
+}
+
+.display-main {
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.display-current {
+  width: 80vw;
+}
+
+.display-label {
+  margin: 0;
+}
+
+.scene-box {
+  border: 6px solid;
+  border-radius: 1rem;
+  padding: 5px 2vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.scene-box h2 {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.display-current .scene-box { height: 20vh; border-color: #800000; }
+.display-current .scene-box h2 { font-size: 12vh; }
+.display-current .display-label { font-size: 10vh; }
+
+.display-upcoming {
+  display: flex;
+  gap: 2vw;
+  margin-top: 2vh;
+}
+
+.display-upcoming > div { width: 39vw; }
+.display-upcoming .scene-box { height: 12vh; }
+.display-upcoming .scene-box h2 { font-size: 6vh; }
+.display-upcoming .display-label { font-size: 8vh; }
+.display-upcoming .next .scene-box { border-color: #000099; }
+.display-upcoming .after .scene-box { border-color: #003300; }
+
+.display-est {
+  position: fixed;
+  inset: auto 0 0 0;
+  height: 10vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.display-est h1 { font-size: 5vh; margin: 0; }
+.display-est h2 { font-size: 6vh; margin: 0; }
+
+.display-offline h1 {
+  color: #990000;
+  font-size: 25vh;
+}
+
+/* Host page */
+
+.host-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.host-status {
+  min-width: 18rem;
+}
+
+.host-status h1 { margin: 0; }
+.host-status h2 {
+  min-height: 2.5rem;
+  margin: 0 0 1rem 50px;
+}
+
+.host-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.display-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 3px solid #212529;
+  border-radius: 0.5rem;
+}
+
+.display-grid .btn {
+  height: 10vh;
+  width: 20vh;
+  min-width: 7rem;
+}
+
+.btn-display-protected { background-color: green !important; border-color: green !important; }
+.btn-display-unprotected { background-color: orange !important; border-color: orange !important; }
+
+.time-record-switch { user-select: none; }
