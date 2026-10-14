@@ -4,7 +4,7 @@ from asgiref.sync import sync_to_async
 from channels.testing import WebsocketCommunicator
 from django.contrib.auth.models import AnonymousUser, User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase, TransactionTestCase, override_settings
 
 from App.asgi import application
 from .consumers import ShowConsumer
@@ -38,8 +38,8 @@ class ApiTests(TestCase):
         NewDisplayConfig.objects.create(display_number=2, name="Fitzgerald", play_sound=True)
         displays = self.client.get("/api/displays/").json()["displays"]
         self.assertEqual(len(displays), 6)
-        self.assertEqual(displays[0], {"display_number": 1, "name": "Display 1", "play_sound": False})
-        self.assertEqual(displays[1], {"display_number": 2, "name": "Fitzgerald", "play_sound": True})
+        self.assertEqual(displays[0], {"display_number": 1, "name": "Display 1", "play_sound": False, "max_video_fps": 30})
+        self.assertEqual(displays[1], {"display_number": 2, "name": "Fitzgerald", "play_sound": True, "max_video_fps": 30})
 
     def test_update_display_requires_superuser(self):
         url = "/api/displays/3/"
@@ -50,8 +50,11 @@ class ApiTests(TestCase):
         self.assertEqual(self.put_json(url, {"name": "", "play_sound": True}).status_code, 400)
         self.assertEqual(self.put_json(url, {"name": "Lobby", "play_sound": "True"}).status_code, 400)
         self.assertEqual(self.put_json("/api/displays/7/", {"name": "x", "play_sound": True}).status_code, 404)
+        self.assertEqual(self.put_json(url, {"name": "Lobby", "play_sound": True, "max_video_fps": 12}).status_code, 400)
         self.assertEqual(self.put_json(url, {"name": "Lobby", "play_sound": True}).status_code, 200)
         self.assertEqual(NewDisplayConfig.objects.get(display_number=3).name, "Lobby")
+        self.assertEqual(self.put_json(url, {"name": "Lobby", "play_sound": True, "max_video_fps": 5}).status_code, 200)
+        self.assertEqual(NewDisplayConfig.objects.get(display_number=3).max_video_fps, 5)
 
     def test_verify_rfid(self):
         RFIDData.objects.create(RFID="12345")
@@ -109,6 +112,9 @@ class ApiTests(TestCase):
 
 
 class ConsumerTests(TransactionTestCase):
+    def setUp(self):
+        show.video_state.update(live=False, layout="overlay", network="local")
+
     async def connect(self, query="", user=None):
         communicator = WebsocketCommunicator(ShowConsumer.as_asgi(), f"/ws/show/?{query}")
         communicator.scope["user"] = user or AnonymousUser()
@@ -120,6 +126,7 @@ class ConsumerTests(TransactionTestCase):
         viewer, connected, _ = await self.connect()
         self.assertTrue(connected)
         self.assertEqual((await viewer.receive_json_from())["current"], "A")
+        self.assertEqual(await viewer.receive_json_from(), show.video_message())
         await viewer.send_json_to({"action": "next"})
         self.assertEqual((await viewer.receive_json_from())["type"], "error")
         await viewer.disconnect()
@@ -140,8 +147,9 @@ class ConsumerTests(TransactionTestCase):
         host, connected, _ = await self.connect("role=host", admin)
         self.assertTrue(connected)
         display, _, _ = await self.connect("display=1")
-        await host.receive_json_from()
-        await display.receive_json_from()
+        for communicator in (host, display):
+            await communicator.receive_json_from()  # state
+            await communicator.receive_json_from()  # video
 
         await host.send_json_to({"action": "next"})
         self.assertEqual((await display.receive_json_from())["current"], "B")
@@ -162,7 +170,84 @@ class ConsumerTests(TransactionTestCase):
         await display.disconnect()
         self.assertEqual(await host.receive_json_from(),
                          {"type": "display_status", "display": 1, "online": False, "protected": False})
+        self.assertEqual((await host.receive_json_from())["type"], "video_leave")
         await host.disconnect()
+
+    async def test_video_signaling_is_relayed_between_host_and_one_display(self):
+        admin = await sync_to_async(User.objects.create_superuser)("admin", password="pw")
+        host, _, _ = await self.connect("role=host", admin)
+        display, _, _ = await self.connect("display=2")
+        other, _, _ = await self.connect("display=3")
+        for communicator in (host, display, other):
+            await communicator.receive_json_from()
+            await communicator.receive_json_from()
+
+        await host.send_json_to({"action": "video_state", "live": True, "layout": "split"})
+        for communicator in (host, display, other):
+            self.assertEqual(await communicator.receive_json_from(), {
+                "type": "video", "live": True, "layout": "split", "network": "local", "ice_servers": [],
+            })
+
+        await display.send_json_to({"action": "video_join"})
+        join = await host.receive_json_from()
+        self.assertEqual((join["type"], join["display"]), ("video_join", 2))
+        peer = join["peer"]
+
+        await host.send_json_to({"action": "signal", "peer": peer, "data": {"sdp": "offer"}})
+        self.assertEqual(await display.receive_json_from(), {"type": "signal", "data": {"sdp": "offer"}})
+        self.assertTrue(await other.receive_nothing())
+
+        await display.send_json_to({"action": "signal", "data": {"sdp": "answer"}})
+        self.assertEqual(await host.receive_json_from(), {"type": "signal", "peer": peer, "data": {"sdp": "answer"}})
+
+        await host.send_json_to({"action": "signal", "peer": "../evil", "data": {}})
+        self.assertEqual((await host.receive_json_from())["type"], "error")
+
+        # Losing the streaming host takes the video down for everyone.
+        await host.disconnect()
+        self.assertEqual(await display.receive_json_from(), {
+            "type": "video", "live": False, "layout": "split", "network": "local", "ice_servers": [],
+        })
+        await display.disconnect()
+        await other.disconnect()
+
+    @override_settings(WEBRTC_STUN_URLS=["stun:stun.example:3478"], WEBRTC_TURN_URLS=[])
+    async def test_host_can_switch_video_to_internet_mode(self):
+        admin = await sync_to_async(User.objects.create_superuser)("admin", password="pw")
+        host, _, _ = await self.connect("role=host", admin)
+        await host.receive_json_from()
+        await host.receive_json_from()
+
+        await host.send_json_to({"action": "video_state", "live": True, "network": "internet"})
+        message = await host.receive_json_from()
+        self.assertEqual((message["network"], message["ice_servers"]), ("internet", [{"urls": ["stun:stun.example:3478"]}]))
+
+        await host.send_json_to({"action": "video_state", "live": True, "network": "satellite"})
+        self.assertEqual((await host.receive_json_from())["type"], "error")
+        await host.disconnect()
+
+    async def test_displays_cannot_start_video(self):
+        display, _, _ = await self.connect("display=1")
+        await display.receive_json_from()
+        await display.receive_json_from()
+        await display.send_json_to({"action": "video_state", "live": True})
+        self.assertEqual((await display.receive_json_from())["type"], "error")
+        await display.disconnect()
+
+
+class IceServerTests(TestCase):
+    def test_local_uses_no_outside_servers(self):
+        self.assertEqual(show.ice_servers("local"), [])
+
+    @override_settings(WEBRTC_STUN_URLS=["stun:stun.example:3478"], WEBRTC_TURN_URLS=[])
+    def test_internet_uses_stun(self):
+        self.assertEqual(show.ice_servers("internet"), [{"urls": ["stun:stun.example:3478"]}])
+
+    @override_settings(WEBRTC_STUN_URLS=["stun:s.example"], WEBRTC_TURN_URLS=["turn:t.example:3478"],
+                       WEBRTC_TURN_USERNAME="u", WEBRTC_TURN_CREDENTIAL="p")
+    def test_internet_adds_turn_when_configured(self):
+        self.assertEqual(show.ice_servers("internet")[1],
+                         {"urls": ["turn:t.example:3478"], "username": "u", "credential": "p"})
 
 
 class RoutingTests(TestCase):

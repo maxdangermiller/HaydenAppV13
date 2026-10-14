@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../api'
+import CameraPanel from '../components/CameraPanel'
 import Modal from '../components/Modal'
 import { formatTime, useElapsed } from '../time'
 import { useDisplays } from '../useDisplays'
 import { useShowSocket } from '../useShowSocket'
+import { FPS_OPTIONS, VideoBroadcaster } from '../video'
 
 // Displays heartbeat every 5s; treat one as gone after missing a few.
 const STALE_MS = 15000
@@ -23,6 +25,10 @@ export default function Host() {
   const displaysRef = useRef(displays)
   const statusesRef = useRef({})
   const alertTimersRef = useRef({})
+  const [serverVideo, setServerVideo] = useState({ live: false, layout: 'overlay' })
+  const [viewers, setViewers] = useState([])
+  const sendRef = useRef(() => false)
+  const [broadcaster] = useState(() => new VideoBroadcaster((message) => sendRef.current(message), setViewers))
 
   const elapsed = useElapsed(state)
 
@@ -65,10 +71,34 @@ export default function Host() {
       case 'error':
         addProblem(message.message)
         break
+      case 'video':
+        setServerVideo({ live: message.live, layout: message.layout, network: message.network })
+        broadcaster.iceServers = message.ice_servers ?? []
+        break
+      case 'video_join':
+        broadcaster.addViewer(message.peer, message.display)
+        break
+      case 'video_leave':
+        broadcaster.removeViewer(message.peer)
+        break
+      case 'signal':
+        broadcaster.handleSignal(message.peer, message.data)
+        break
     }
-  }, [setDisplays, setStatus])
+  }, [setDisplays, setStatus, broadcaster])
 
   const { send, connected, rejected } = useShowSocket('role=host', onMessage)
+
+  useEffect(() => {
+    sendRef.current = send
+  }, [send])
+
+  useEffect(() => {
+    if (!displays) return
+    broadcaster.setLimits({
+      displayLimits: Object.fromEntries(displays.map((d) => [d.display_number, d.max_video_fps])),
+    })
+  }, [broadcaster, displays])
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -122,7 +152,7 @@ export default function Host() {
     try {
       const data = await api(`displays/${editing.display_number}/`, {
         method: 'PUT',
-        body: { name: editing.name, play_sound: editing.play_sound },
+        body: { name: editing.name, play_sound: editing.play_sound, max_video_fps: editing.max_video_fps },
       })
       setDisplays(data.displays)
       setEditing(null)
@@ -198,6 +228,15 @@ export default function Host() {
                  checked={recordTimes} onChange={(e) => setRecordTimes(e.target.checked)} />
           <label className="form-check-label" htmlFor="time-record-switch">Enable Time Recording</label>
         </div>
+
+        <CameraPanel
+          broadcaster={broadcaster}
+          send={send}
+          connected={connected}
+          serverVideo={serverVideo}
+          viewers={viewers}
+          nameOf={nameOf}
+        />
       </div>
 
       <div className="host-status">
@@ -231,6 +270,12 @@ export default function Host() {
                    onChange={(e) => setEditing({ ...editing, play_sound: e.target.checked })} />
             <label htmlFor="display-sound" className="form-check-label">Play sound on scene change</label>
           </div>
+          <label htmlFor="display-fps" className="form-label mt-3">Live video frame rate limit</label>
+          <select id="display-fps" className="form-select" value={editing.max_video_fps}
+                  onChange={(e) => setEditing({ ...editing, max_video_fps: Number(e.target.value) })}>
+            {FPS_OPTIONS.map((fps) => <option key={fps} value={fps}>{fps} fps{fps === 30 ? ' (no limit)' : ''}</option>)}
+          </select>
+          <div className="form-text">Lower this for displays on Wi-Fi or slower computers.</div>
           {editError && <div className="text-danger mt-2">{editError}</div>}
         </Modal>
       )}

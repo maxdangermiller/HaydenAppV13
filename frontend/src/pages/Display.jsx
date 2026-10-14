@@ -5,6 +5,7 @@ import Modal from '../components/Modal'
 import { formatTime, useElapsed } from '../time'
 import { useDisplays } from '../useDisplays'
 import { useShowSocket } from '../useShowSocket'
+import { VideoReceiver } from '../video'
 import NotFound from './NotFound'
 
 const HEARTBEAT_MS = 5000
@@ -37,6 +38,10 @@ function DisplayScreen({ number }) {
   const lastPongRef = useRef(Date.now())
   const leavingRef = useRef(false)
   const previousSceneRef = useRef(null)
+  const [video, setVideo] = useState({ live: false, layout: 'overlay' })
+  const [stream, setStream] = useState(null)
+  const sendRef = useRef(() => false)
+  const [receiver] = useState(() => new VideoReceiver((message) => sendRef.current(message), setStream))
 
   const config = displays?.find((d) => d.display_number === number)
   const elapsed = useElapsed(state)
@@ -45,9 +50,27 @@ function DisplayScreen({ number }) {
     if (message.type === 'state') setState({ ...message, receivedAt: Date.now() })
     else if (message.type === 'displays') setDisplays(message.displays)
     else if (message.type === 'pong') lastPongRef.current = Date.now()
-  }, [setDisplays])
+    else if (message.type === 'video') {
+      setVideo({ live: message.live, layout: message.layout })
+      receiver.iceServers = message.ice_servers ?? []
+      if (message.live) receiver.request()
+      else receiver.close()
+    } else if (message.type === 'signal') receiver.handleSignal(message.data)
+  }, [setDisplays, receiver])
 
   const { send, connected, reconnect } = useShowSocket(`display=${number}`, onMessage)
+
+  useEffect(() => {
+    sendRef.current = send
+  }, [send])
+
+  // The host drops our video connection when our socket goes; the server re-sends the video
+  // state when we reconnect, and we ask again then.
+  useEffect(() => {
+    if (!connected) receiver.close()
+  }, [connected, receiver])
+
+  useEffect(() => () => receiver.close(), [receiver])
 
   // Heartbeat tells the host we're online and whether we're locked in fullscreen.
   useEffect(() => {
@@ -155,39 +178,106 @@ function DisplayScreen({ number }) {
   }, [authOpen, adminOpen, joined, submitCode])
 
   const remaining = state && state.est > 0 ? state.est - elapsed : 0
+  const estText = remaining > 0 ? formatTime(remaining) : '~'
+  const showVideo = video.live && !!stream
+
+  let screen
+  if (offline) {
+    screen = (
+      <div className="page-center display-offline">
+        <h1 className="impact m-0">Offline</h1>
+        <h2 className="impact text-white">We're working on it!</h2>
+      </div>
+    )
+  } else if (showVideo && video.layout === 'overlay') {
+    // Full-screen video with the scene info in a lower-third band on top of it.
+    screen = (
+      <div className="video-overlay-layout">
+        <VideoFeed stream={stream} />
+        <div className="video-display-name impact">{config?.name}</div>
+        <div className="video-band">
+          <div className="band-current">
+            <div className="band-label impact band-color-current">Current</div>
+            <div className="band-value band-value-current">{state?.current}</div>
+          </div>
+          <div className="band-upcoming">
+            <div>
+              <div className="band-label impact band-color-next">Next</div>
+              <div className="band-value">{state?.next}</div>
+            </div>
+            <div>
+              <div className="band-label impact band-color-after">After</div>
+              <div className="band-value">{state?.after}</div>
+            </div>
+          </div>
+          <div className="band-est">
+            <div className="band-label impact band-color-est">Est. Time</div>
+            <div className="band-value band-value-est">{estText}</div>
+          </div>
+        </div>
+      </div>
+    )
+  } else if (showVideo) {
+    // Video on top, compact scene info underneath.
+    screen = (
+      <div className="video-split-layout">
+        <div className="split-video">
+          <VideoFeed stream={stream} />
+          <div className="video-display-name impact">{config?.name}</div>
+        </div>
+        <div className="split-info">
+          <div className="split-current">
+            <h1 className="impact display-label color-current">Current:</h1>
+            <div className="scene-box"><h2>{state?.current}</h2></div>
+          </div>
+          <div className="split-row">
+            <div className="next">
+              <h1 className="impact display-label color-next">Next:</h1>
+              <div className="scene-box"><h2>{state?.next}</h2></div>
+            </div>
+            <div className="after">
+              <h1 className="impact display-label color-after">After:</h1>
+              <div className="scene-box"><h2>{state?.after}</h2></div>
+            </div>
+            <div className="split-est">
+              <h1 className="impact display-label color-est">Est. Time:</h1>
+              <h2>{estText}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  } else {
+    screen = (
+      <>
+        <h1 className="impact display-title">{config?.name}</h1>
+        <div className="display-main">
+          <div className="display-current">
+            <h1 className="impact display-label color-current">Current:</h1>
+            <div className="scene-box"><h2>{state?.current}</h2></div>
+          </div>
+          <div className="display-upcoming">
+            <div className="next">
+              <h1 className="impact display-label color-next">Next:</h1>
+              <div className="scene-box"><h2>{state?.next}</h2></div>
+            </div>
+            <div className="after">
+              <h1 className="impact display-label color-after">After:</h1>
+              <div className="scene-box"><h2>{state?.after}</h2></div>
+            </div>
+          </div>
+        </div>
+        <div className="display-est">
+          <h1 className="impact color-est">Estimated Time:</h1>
+          <h2>{estText}</h2>
+        </div>
+      </>
+    )
+  }
 
   return (
     <div className="display-page">
-      {offline ? (
-        <div className="page-center display-offline">
-          <h1 className="impact m-0">Offline</h1>
-          <h2 className="impact text-white">We're working on it!</h2>
-        </div>
-      ) : (
-        <>
-          <h1 className="impact display-title">{config?.name}</h1>
-          <div className="display-main">
-            <div className="display-current">
-              <h1 className="impact display-label color-current">Current:</h1>
-              <div className="scene-box"><h2>{state?.current}</h2></div>
-            </div>
-            <div className="display-upcoming">
-              <div className="next">
-                <h1 className="impact display-label color-next">Next:</h1>
-                <div className="scene-box"><h2>{state?.next}</h2></div>
-              </div>
-              <div className="after">
-                <h1 className="impact display-label color-after">After:</h1>
-                <div className="scene-box"><h2>{state?.after}</h2></div>
-              </div>
-            </div>
-          </div>
-          <div className="display-est">
-            <h1 className="impact color-est">Estimated Time:</h1>
-            <h2>{remaining > 0 ? formatTime(remaining) : '~'}</h2>
-          </div>
-        </>
-      )}
+      {screen}
 
       {!joined && (
         <Modal
@@ -232,4 +322,12 @@ function DisplayScreen({ number }) {
       )}
     </div>
   )
+}
+
+function VideoFeed({ stream }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    if (ref.current) ref.current.srcObject = stream
+  }, [stream])
+  return <video ref={ref} className="video-feed" autoPlay muted playsInline />
 }

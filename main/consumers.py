@@ -16,14 +16,31 @@ Server -> client:
     {"type": "tamper", display}                                           hosts
     {"type": "pong"}                                                      reply to heartbeat
     {"type": "error", message}
+
+Video (WebRTC). Media goes straight from the host's browser to each display; the server only
+relays the small setup messages, addressing each display socket by a random `peer` id.
+    host -> server:    {"action": "video_state", "live": bool, "layout": "overlay"|"split",
+                        "network": "local"|"internet"}
+                       {"action": "signal", "peer": id, "data": {...}}
+    display -> server: {"action": "video_join"}            ask the streaming host for an offer
+                       {"action": "signal", "data": {...}}
+    server -> all:     {"type": "video", live, layout, network, ice_servers}   on connect and on change
+    server -> hosts:   {"type": "video_join", peer, display} / {"type": "video_leave", peer}
+                       {"type": "signal", peer, data}
+    server -> display: {"type": "signal", data}
 """
+import re
 from urllib.parse import parse_qs
+from uuid import uuid4
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import JsonWebsocketConsumer
 
 from . import show
 from .models import DISPLAY_COUNT
+
+
+PEER_ID = re.compile(r"[0-9a-f]{32}")
 
 
 class ShowConsumer(JsonWebsocketConsumer):
@@ -33,6 +50,8 @@ class ShowConsumer(JsonWebsocketConsumer):
         user = self.scope.get("user")
         self.is_host = False
         self.display = None
+        self.peer = None
+        self.streaming = False
 
         if params.get("role") == ["host"]:
             if not (user and user.is_superuser):
@@ -46,13 +65,17 @@ class ShowConsumer(JsonWebsocketConsumer):
                 self.reject(4404)
                 return
             self.display = int(display)
+            self.peer = uuid4().hex
 
         async_to_sync(self.channel_layer.group_add)(show.SHOW_GROUP, self.channel_name)
         if self.is_host:
             async_to_sync(self.channel_layer.group_add)(show.HOSTS_GROUP, self.channel_name)
+        if self.peer:
+            async_to_sync(self.channel_layer.group_add)(show.peer_group(self.peer), self.channel_name)
         self.accept()
 
         self.send_json({"type": "state", **show.get_state()})
+        self.send_json(show.video_message())
 
     def reject(self, code):
         # Accept before closing: a socket refused during the handshake reaches the browser as a
@@ -65,9 +88,14 @@ class ShowConsumer(JsonWebsocketConsumer):
         if self.is_host:
             async_to_sync(self.channel_layer.group_discard)(show.HOSTS_GROUP, self.channel_name)
         if self.display:
+            async_to_sync(self.channel_layer.group_discard)(show.peer_group(self.peer), self.channel_name)
             show.broadcast(show.HOSTS_GROUP, {
                 "type": "display_status", "display": self.display, "online": False, "protected": False,
             })
+            show.broadcast(show.HOSTS_GROUP, {"type": "video_leave", "peer": self.peer})
+        if self.streaming:
+            show.video_state["live"] = False
+            show.broadcast_video()
 
     def receive_json(self, content, **kwargs):
         action = content.get("action") if isinstance(content, dict) else None
@@ -97,6 +125,24 @@ class ShowConsumer(JsonWebsocketConsumer):
         show.set_index(index)
         show.broadcast_state()
 
+    def video_state(self, content):
+        live = content.get("live")
+        layout = content.get("layout", show.video_state["layout"])
+        network = content.get("network", show.video_state["network"])
+        if not isinstance(live, bool) or layout not in show.VIDEO_LAYOUTS or network not in show.VIDEO_NETWORKS:
+            self.send_json({"type": "error", "message": "video_state requires live (bool) and a valid layout and network"})
+            return
+        self.streaming = live
+        show.video_state.update(live=live, layout=layout, network=network)
+        show.broadcast_video()
+
+    def host_signal(self, content):
+        peer, data = content.get("peer"), content.get("data")
+        if not isinstance(peer, str) or not PEER_ID.fullmatch(peer) or not isinstance(data, dict):
+            self.send_json({"type": "error", "message": "signal requires a peer id and a data object"})
+            return
+        show.broadcast(show.peer_group(peer), {"type": "signal", "data": data})
+
     # Display actions
 
     def heartbeat(self, content):
@@ -111,8 +157,23 @@ class ShowConsumer(JsonWebsocketConsumer):
     def tamper(self, content):
         show.broadcast(show.HOSTS_GROUP, {"type": "tamper", "display": self.display})
 
-    host_actions = {"next": next, "previous": previous, "go_to": go_to}
-    display_actions = {"heartbeat": heartbeat, "tamper": tamper}
+    def video_join(self, content):
+        show.broadcast(show.HOSTS_GROUP, {"type": "video_join", "peer": self.peer, "display": self.display})
+
+    def display_signal(self, content):
+        if not isinstance(content.get("data"), dict):
+            self.send_json({"type": "error", "message": "signal requires a data object"})
+            return
+        show.broadcast(show.HOSTS_GROUP, {"type": "signal", "peer": self.peer, "data": content["data"]})
+
+    host_actions = {
+        "next": next, "previous": previous, "go_to": go_to,
+        "video_state": video_state, "signal": host_signal,
+    }
+    display_actions = {
+        "heartbeat": heartbeat, "tamper": tamper,
+        "video_join": video_join, "signal": display_signal,
+    }
 
     # Channel layer events
 

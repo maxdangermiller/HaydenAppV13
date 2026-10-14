@@ -25,7 +25,11 @@ if IS_HEROKU_APP:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 else:
-    ALLOWED_HOSTS = [".localhost", "127.0.0.1", "[::1]", "0.0.0.0", "[::]"]
+    # Run on the venue's local network (see serve.sh): displays reach this computer by whatever
+    # IP or hostname it has there, so accept any host name.
+    ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",")
+    # Browsers ignore this header on plain-HTTP network addresses and log a warning on every page.
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = None
     # The Vite dev server proxies to Django from a different port.
     CSRF_TRUSTED_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
@@ -118,3 +122,15 @@ STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
+
+# Live video in "internet" mode. STUN lets browsers on different networks find a direct route to
+# each other (the video still never touches this server). Some networks block direct connections;
+# for those, set a TURN server from a provider, which relays the video instead.
+WEBRTC_STUN_URLS = [
+    url for url in os.environ.get(
+        "WEBRTC_STUN_URLS", "stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302"
+    ).split(",") if url
+]
+WEBRTC_TURN_URLS = [url for url in os.environ.get("WEBRTC_TURN_URLS", "").split(",") if url]
+WEBRTC_TURN_USERNAME = os.environ.get("WEBRTC_TURN_USERNAME", "")
+WEBRTC_TURN_CREDENTIAL = os.environ.get("WEBRTC_TURN_CREDENTIAL", "")

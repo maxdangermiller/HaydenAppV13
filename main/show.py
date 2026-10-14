@@ -1,6 +1,7 @@
 """Show state and display config helpers shared by the HTTP API and the WebSocket consumer."""
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
@@ -9,6 +10,21 @@ from .models import DISPLAY_COUNT, NewDisplayConfig, Scene, ShowState
 
 SHOW_GROUP = "show"
 HOSTS_GROUP = "hosts"
+
+VIDEO_LAYOUTS = ("overlay", "split")
+# "local": video only reaches displays on the host's own network, no outside servers involved.
+# "internet": also uses the STUN/TURN servers from settings, so displays elsewhere can connect.
+VIDEO_NETWORKS = ("local", "internet")
+
+# Whether the host's camera is live and how displays should lay it out. Kept in memory because it
+# only means anything while the streaming host is connected; like the in-memory channel layer,
+# this assumes a single server process.
+video_state = {"live": False, "layout": "overlay", "network": "local"}
+
+
+def peer_group(peer):
+    """Channel group for one display socket, so the host can address it during video setup."""
+    return f"peer_{peer}"
 
 
 def get_displays():
@@ -21,6 +37,7 @@ def get_displays():
             "display_number": number,
             "name": config.name if config else f"Display {number}",
             "play_sound": config.play_sound if config else False,
+            "max_video_fps": config.max_video_fps if config else 30,
         })
     return displays
 
@@ -70,6 +87,28 @@ def broadcast(group, message):
 
 def broadcast_state():
     broadcast(SHOW_GROUP, {"type": "state", **get_state()})
+
+
+def ice_servers(network):
+    """WebRTC servers for browsers to use, in RTCPeerConnection's `iceServers` format."""
+    if network != "internet":
+        return []
+    servers = [{"urls": settings.WEBRTC_STUN_URLS}] if settings.WEBRTC_STUN_URLS else []
+    if settings.WEBRTC_TURN_URLS:
+        servers.append({
+            "urls": settings.WEBRTC_TURN_URLS,
+            "username": settings.WEBRTC_TURN_USERNAME,
+            "credential": settings.WEBRTC_TURN_CREDENTIAL,
+        })
+    return servers
+
+
+def video_message():
+    return {"type": "video", **video_state, "ice_servers": ice_servers(video_state["network"])}
+
+
+def broadcast_video():
+    broadcast(SHOW_GROUP, video_message())
 
 
 def broadcast_displays():

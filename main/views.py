@@ -11,7 +11,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from . import show
-from .models import DISPLAY_COUNT, NewDisplayConfig, RFIDData, Scene
+from .models import DISPLAY_COUNT, VIDEO_FPS_CHOICES, NewDisplayConfig, RFIDData, Scene
 
 
 def error(message, status=400):
@@ -99,9 +99,13 @@ def display_detail(request, number):
         return error("Name must be between 1 and 50 characters.")
     if not isinstance(data.get("play_sound"), bool):
         return error("play_sound must be true or false.")
+    max_video_fps = data.get("max_video_fps", 30)
+    if max_video_fps not in VIDEO_FPS_CHOICES or isinstance(max_video_fps, bool):
+        return error(f"max_video_fps must be one of {', '.join(map(str, VIDEO_FPS_CHOICES))}.")
 
     NewDisplayConfig.objects.update_or_create(
-        display_number=number, defaults={"name": name, "play_sound": data["play_sound"]},
+        display_number=number,
+        defaults={"name": name, "play_sound": data["play_sound"], "max_video_fps": max_video_fps},
     )
     show.broadcast_displays()
     return JsonResponse({"displays": show.get_displays()})

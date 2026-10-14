@@ -37,7 +37,16 @@ body {
   position: fixed;
   bottom: 10px;
   right: 10px;
-  font-size: 0.85rem;
+  z-index: 1040;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.75rem;
+  line-height: 1.35;
+  text-align: right;
   pointer-events: none;
 }
 
@@ -188,3 +197,165 @@ body {
 .btn-display-unprotected { background-color: orange !important; border-color: orange !important; }
 
 .time-record-switch { user-select: none; }
+
+/* Display with live video */
+
+.video-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: black;
+  display: block;
+}
+
+.video-display-name {
+  position: absolute;
+  top: 2vh;
+  left: 2vw;
+  padding: 0.3vh 1.2vw;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  font-size: 4vh;
+}
+
+/* Overlay: full-screen video, scene info in a lower-third band */
+.video-overlay-layout {
+  position: fixed;
+  inset: 0;
+  background: black;
+}
+
+.video-overlay-layout .video-feed {
+  position: absolute;
+  inset: 0;
+}
+
+.video-band {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) auto;
+  align-items: end;
+  gap: 3vw;
+  padding: 12vh 3vw 4vh;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.85) 45%);
+  color: white;
+}
+
+.band-label {
+  font-size: 3.5vh;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.band-value {
+  font-size: 4.5vh;
+  font-weight: 600;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.band-value-current { font-size: 9vh; }
+.band-value-est { font-size: 7vh; font-variant-numeric: tabular-nums; }
+
+.band-current {
+  border-left: 1vh solid #c0392b;
+  padding-left: 1.5vw;
+  min-width: 0;
+}
+
+.band-upcoming {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2vw;
+  min-width: 0;
+}
+
+.band-est { text-align: right; padding-right: 8vw; }
+
+/* The original scene colours are too dark to read on video, so use lighter tints of them. */
+.band-color-current { color: #ff7a6b; }
+.band-color-next { color: #8fb0ff; }
+.band-color-after { color: #7ddc8f; }
+.band-color-est { color: #c9a2ff; }
+
+/* Split: video on top, compact scene info below */
+.video-split-layout {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: grey;
+}
+
+.split-video {
+  position: relative;
+  height: 60vh;
+  background: black;
+}
+
+.split-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.5vh;
+  padding: 1vh 3vw 2vh;
+}
+
+.split-current .display-label { font-size: 5vh; }
+.split-current .scene-box { height: 11vh; border-color: #800000; border-width: 5px; }
+.split-current .scene-box h2 { font-size: 7vh; }
+
+.split-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 2vw;
+  align-items: end;
+}
+
+.split-row .display-label { font-size: 3.5vh; }
+.split-row .scene-box { height: 7vh; border-width: 4px; }
+.split-row .scene-box h2 { font-size: 4vh; }
+.split-row .next .scene-box { border-color: #000099; }
+.split-row .after .scene-box { border-color: #003300; }
+.split-est { padding-right: 8vw; }
+.split-est h2 { font-size: 6vh; margin: 0; font-variant-numeric: tabular-nums; }
+
+/* Host camera panel */
+.camera-panel {
+  width: 100%;
+  max-width: 34rem;
+  padding: 0.75rem;
+  border: 3px solid #212529;
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.camera-preview {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: black;
+  border-radius: 0.25rem;
+  object-fit: contain;
+}
+
+.viewer-table {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.viewer-table td {
+  padding: 0.1rem 0.5rem 0.1rem 0;
+  white-space: nowrap;
+}
+
+.viewer-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

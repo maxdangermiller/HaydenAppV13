@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth'
 
 export default function Login() {
@@ -40,7 +40,10 @@ export default function Login() {
                  value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
         {error && <div className="alert alert-danger py-2">{error}</div>}
-        <button type="submit" className="btn btn-success" disabled={submitting}>Login</button>
+        <div className="d-flex justify-content-between">
+          <button type="submit" className="btn btn-success" disabled={submitting}>Login</button>
+          <Link to="/" className="btn btn-outline-light">Back to Home</Link>
+        </div>
       </form>
     </div>
   )

@@ -4,11 +4,18 @@ from django.utils import timezone
 
 DISPLAY_COUNT = 6
 
+# Frame rates a display's live video can be limited to (see the host's camera controls).
+VIDEO_FPS_CHOICES = (30, 15, 10, 5, 2)
+
 
 class NewDisplayConfig(models.Model):
     name = models.CharField(max_length=50)
     play_sound = models.BooleanField()
     display_number = models.IntegerField(unique=True)
+    max_video_fps = models.IntegerField(
+        default=30, choices=[(fps, f"{fps} fps") for fps in VIDEO_FPS_CHOICES],
+        help_text="Upper limit for live video on this display, e.g. lower for displays on Wi-Fi",
+    )
 
     def __str__(self) -> str:
         return f"Display {self.display_number} - {self.name}"
