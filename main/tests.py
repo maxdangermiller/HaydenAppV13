@@ -277,3 +277,8 @@ class RoutingTests(TestCase):
         for path in ["/", "/host/", "/client/3/"]:
             self.assertIn(self.client.get(path).status_code, (200, 503))
         self.assertEqual(self.client.get("/api/nope/").status_code, 404)
+
+    def test_admin_and_api_without_trailing_slash_redirect(self):
+        self.assertRedirects(self.client.get("/admin"), "/admin/", status_code=301, fetch_redirect_response=False)
+        self.assertEqual(self.client.get("/api").status_code, 404)
+        self.assertIn(self.client.get("/administrator-notes").status_code, (200, 503))  # still a React page

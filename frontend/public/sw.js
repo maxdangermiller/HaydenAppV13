@@ -31,7 +31,7 @@ self.addEventListener('fetch', (event) => {
   const request = event.request
   const url = new URL(request.url)
   if (request.method !== 'GET' || url.origin !== self.location.origin) return
-  if (/^\/(api|admin|ws)\//.test(url.pathname)) return
+  if (/^\/(api|admin|ws)(\/|$)/.test(url.pathname)) return
   // Audio and video use range requests, which the Cache API can't store.
   if (request.headers.has('range')) return
 
